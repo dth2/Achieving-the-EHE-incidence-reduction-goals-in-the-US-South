@@ -48,6 +48,7 @@ hivtrans_msm <- function(dat, at) {
   rCT <- dat$attr$rCT
   uCT <- dat$attr$uCT
   race <- dat$attr$race
+  tx.status <- dat$attr$tx.status
 
   # Parameters
   URAI.prob <- dat$param$URAI.prob
@@ -88,6 +89,7 @@ hivtrans_msm <- function(dat, at) {
   # Attributes of infected
   ip.vl <- vl[disc.ip[, 1]]
   ip.stage <- stage[disc.ip[, 1]]
+  ip.txStat <- tx.status[disc.ip[, 1]]
 
   # Attributes of susceptible
   ip.prep <- prepStat[disc.ip[, 2]]
@@ -97,6 +99,10 @@ hivtrans_msm <- function(dat, at) {
 
   # Base TP from VL
   ip.tprob <- pmin(0.99, URAI.prob * 2.45^(ip.vl - 4.5))
+
+  # Adjustment (based on Supervie JAIDS) for VL Suppressed, on ART
+  ip.noTrans <- which(ip.vl <= log10(200) & ip.txStat == 1)
+  ip.tprob[ip.noTrans] <- 2.2/1e5
 
   # Transform to log odds
   ip.tlo <- log(ip.tprob/(1 - ip.tprob))
@@ -145,6 +151,7 @@ hivtrans_msm <- function(dat, at) {
   # Attributes of infected
   rp.vl <- vl[disc.rp[, 2]]
   rp.stage <- stage[disc.rp[, 2]]
+  rp.txStat <- tx.status[disc.rp[, 2]]
 
   # Attributes of susceptible
   rp.circ <- circ[disc.rp[, 1]]
@@ -155,6 +162,10 @@ hivtrans_msm <- function(dat, at) {
 
   # Base TP from VL
   rp.tprob <- pmin(0.99, UIAI.prob * 2.45^(rp.vl - 4.5))
+
+  # Adjustment (based on Supervie JAIDS) for VL Suppressed, on ART
+  rp.noTrans <- which(rp.vl <= log10(200) & rp.txStat == 1)
+  rp.tprob[rp.noTrans] <- 2.2/1e5
 
   # Transform to log odds
   rp.tlo <- log(rp.tprob/(1 - rp.tprob))
