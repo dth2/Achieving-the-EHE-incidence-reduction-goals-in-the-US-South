@@ -1,4 +1,5 @@
 
+
 # MSM -----------------------------------------------------------------
 
 #' @title Initialization Module
@@ -32,14 +33,16 @@ initialize_msm <- function(x, param, init, control, s) {
   ## Network Setup ##
   # Initial network simulations
   dat$nw <- list()
-  for (i in 1:3) {
-    dat$nw[[i]] <- simulate(x[[i]]$fit, basis = x[[i]]$fit$newnetwork)
+  for (i in 1:6) {
+    dat$nw[[i]] <- simulate(x[[i]]$fit, basis = x[[i]]$fit$newnetwork,
+                            response=x[[i]]$fit$newnetwork%ergmlhs%"response",
+                            dynamic = FALSE)
   }
   nw <- dat$nw
 
   # Pull Network parameters
   dat$nwparam <- list()
-  for (i in 1:3) {
+  for (i in 1:6) {
     dat$nwparam[i] <- list(x[[i]][-which(names(x[[i]]) == "fit")])
   }
 
@@ -54,20 +57,44 @@ initialize_msm <- function(x, param, init, control, s) {
   dat$attr$arrival.time <- rep(1, num)
   dat$attr$uid <- 1:num
 
+  #Remove the est object from the global environment for memory
+  rm(est, envir = .GlobalEnv)
+
+  #Create dem.cat for msm het.male and het.female by race
+
+  dat$attr$dem.cat <- rep(NA,num)
+  dat$attr$dem.cat <- ifelse(dat$attr$msm==1 & dat$attr$race==1, 1,
+                             ifelse(dat$attr$msm==1 & dat$attr$race==2, 2,
+                             ifelse(dat$attr$msm==1 & dat$attr$race==3, 3,
+                             ifelse(dat$attr$msm==0 & dat$attr$sex==1 & dat$attr$race==1, 4,
+                             ifelse(dat$attr$msm==0 & dat$attr$sex==1 & dat$attr$race==2, 5,
+                             ifelse(dat$attr$msm==0 & dat$attr$sex==1 & dat$attr$race==3, 6,
+                             ifelse(dat$attr$msm==0 & dat$attr$sex==2 & dat$attr$race==1, 7,
+                             ifelse(dat$attr$msm==0 & dat$attr$sex==2 & dat$attr$race==2, 8,
+                             ifelse(dat$attr$msm==0 & dat$attr$sex==2 & dat$attr$race==3, 9,dat$attr$dem.cat)))))))))
+
+
+  dat$param$dem.dist <- prop.table(table(dat$param$netstats$attr$dem.cat))
+
   # Circumcision
+  dat$attr$race <- as.numeric(dat$attr$race)
   rates <- param$circ.prob[dat$attr$race]
   dat$attr$circ <- rbinom(length(rates), 1, rates)
+  dat$attr$circ[dat$attr$sex==2] <- 0
 
   # Insertivity Quotient
   ins.quot <- rep(NA, num)
   role.class <- dat$attr$role.class
-  ins.quot[role.class == 0]  <- 1
-  ins.quot[role.class == 1]  <- 0
-  ins.quot[role.class == 2]  <- runif(sum(role.class == 2))
+  ins.quot[role.class == 1]  <- 1
+  ins.quot[role.class == 2]  <- 0
+  ins.quot[role.class == 3]  <- runif(sum(role.class == 3))
+
   dat$attr$ins.quot <- ins.quot
+
 
   # HIV-related attributes
   dat <- init_status_msm(dat)
+
 
   # STI Status
   dat <- init_sti_msm(dat)
@@ -93,6 +120,8 @@ initialize_msm <- function(x, param, init, control, s) {
   # Setup Partner List
   plist <- cbind(dat$el[[1]], ptype = 1)
   plist <- rbind(plist, cbind(dat$el[[2]], ptype = 2))
+  plist <- rbind(plist, cbind(dat$el[[4]], ptype = 4))
+  plist <- rbind(plist, cbind(dat$el[[5]], ptype = 5))
   plist <- cbind(plist, start = 1, stop = NA)
   colnames(plist)[1:2] <- c("p1", "p2")
   dat$temp$plist <- plist
@@ -102,9 +131,23 @@ initialize_msm <- function(x, param, init, control, s) {
     dat <- save_clin_hist(dat, at = 1)
   }
 
-  # Network statistics
   if (dat$control$save.nwstats == TRUE) {
-    dat <- calc_nwstats(dat, at = 1)
+    for (i in 1:6) {
+      nwL <- networkLite(dat$el[[i]], dat$attr)
+      if (dat$control$tergmLite.track.duration) {
+        nwL %n% "time" <- dat$p[[i]]$state$nw0 %n% "time"
+        nwL %n% "lasttoggle" <- dat$p[[i]]$state$nw0 %n% "lasttoggle"
+      }
+      nwstats <- summary(dat$control$nwstats.formulas[[i]],
+                         basis = nwL,
+                         term.options = dat$control$mcmc.control[[i]]$term.options)
+
+      dat$stats$nwstats[[i]] <- matrix(nwstats, nrow = 1,
+                                       ncol = length(nwstats),
+                                       dimnames = list(NULL, names(nwstats)))
+
+      dat$stats$nwstats[[i]] <- as.data.frame(dat$stats$nwstats[[i]])
+    }
   }
 
   # dat$param$netstats <- NULL
@@ -128,28 +171,54 @@ init_status_msm <- function(dat) {
 
   num <- sum(dat$attr$active == 1)
 
-  # Sub in diag.status from model for status
-  status <- dat$attr$diag.status
+  # Set up status from model for status
+  dat$attr$diag.status <- rep(0, num)
+  dat$attr$status <- rep(0, num)
+
+  hiv.num <- num * dat$param$HIV.south
+
+  for(i in 1:3){
+
+    msm<-which(dat$attr$msm == 1 & dat$attr$race == i)
+    het.m<-which(dat$attr$sex == 1 & dat$attr$msm == 0 & dat$attr$race == i)
+    het.f<-which(dat$attr$sex == 2 & dat$attr$race == i)
+
+    msm <- sample(msm, hiv.num * dat$param$HIV.msm[i])
+    dat$attr$status[msm] <- 1
+
+    het.m <- sample(het.m, hiv.num * dat$param$HIV.het.m[i])
+    dat$attr$status[het.m] <- 1
+
+    het.f <- sample(het.f, hiv.num * dat$param$HIV.het.f[i])
+    dat$attr$status[het.f] <- 1
+
+  }
+
 
   # Late (AIDS-stage) tester type
-  rates <- dat$param$hiv.test.late.prob[dat$attr$race]
+  rates <- dat$param$hiv.test.late.prob[dat$attr$dem.cat]
   dat$attr$late.tester <- rbinom(length(rates), 1, rates)
 
   # Treatment trajectory
   tt.traj <- rep(NA, num)
-  races <- sort(unique(dat$attr$race))
-  for (i in races) {
-    ids.race <- which(dat$attr$race == i)
-    tt.traj[ids.race] <- sample(1:3, length(ids.race), TRUE,
-                                 c(dat$param$tt.part.supp[i],
-                                   dat$param$tt.full.supp[i],
-                                   dat$param$tt.dur.supp[i]))
+  dem.cat <- sort(unique(dat$attr$dem.cat))
+  for (i in dem.cat) {
+    ids.dem.cat <- which(dat$attr$dem.cat == i)
+    tt.traj[ids.dem.cat] <- sample(1:3, length(ids.dem.cat), TRUE,
+                                c(dat$param$tt.part.supp[i],
+                                  dat$param$tt.full.supp[i],
+                                  dat$param$tt.dur.supp[i]))
 
   }
   dat$attr$tt.traj <- tt.traj
 
+  dat$attr$age<-floor(dat$attr$age)
+  partial<-(0:51)* (7 / 365)
+  partial<-sample(partial,length(dat$attr$age),replace=TRUE)
+  dat$attr$age<-dat$attr$age+partial
+
   ## Infection-related attributes
-  dat$attr$status <- status
+  status <- dat$attr$status
   idsInf <- which(status == 1)
 
   age <- dat$attr$age
@@ -159,8 +228,8 @@ init_status_msm <- function(dat) {
   max.hiv.time <- dat$param$vl.aids.onset.int
 
   time.infected <- round(pmax(min.hiv.time,
-                            pmin(time.sex.active,
-                              sample(min.hiv.time:max.hiv.time, length(idsInf), TRUE))))
+                              pmin(time.sex.active,
+                                   sample(min.hiv.time:max.hiv.time, length(idsInf), TRUE))))
 
   dat$attr$inf.time <- rep(NA, num)
   dat$attr$inf.time[idsInf] <- -time.infected
@@ -217,8 +286,8 @@ init_sti_msm <- function(dat) {
   role.class <- dat$attr$role.class
   num <- length(role.class)
 
-  idsUreth <- which(role.class %in% c(0, 2))
-  idsRect <- which(role.class %in% c(1, 2))
+  idsUreth <- which(role.class %in% c(1, 3))
+  idsRect <- which(role.class %in% c(2, 3))
 
   uGC <- rGC <- rep(0, num)
   uCT <- rCT <- rep(0, num)
@@ -332,6 +401,9 @@ reinit_msm <- function(x, param, init, control, s) {
     dat$stats <- list()
     if (!is.null(x$stats$nwstats)) {
       dat$stats$nwstats <- x$stats$nwstats[[s]]
+    }
+    if (!is.null(x$stats$summstats)) {
+      dat$stats$summstats <- x$stats$summstats[[s]]
     }
   }
 

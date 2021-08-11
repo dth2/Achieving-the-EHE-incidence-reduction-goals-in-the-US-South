@@ -18,16 +18,23 @@
 aging_msm <- function(dat, at) {
 
   age <- dat$attr$age
-  active <- dat$attr$active
   age.grp <- dat$attr$age.grp
 
-  age[active == 1] <- age[active == 1] + 7 / 365
+  age <- age + 7 / 365
 
-  age.breaks <- dat$param$netstats$demog$age.breaks
-  age.grp[active == 1] <- cut(age[active == 1], age.breaks, labels = FALSE)
+  age.grp[age < 19] <- 1
+  age.grp[age >= 19 & age < 25] <- 2
+  age.grp[age >= 25 & age < 35] <- 3
+  age.grp[age >= 35 & age < 45] <- 4
+  age.grp[age >= 45 & age < 55] <- 5
+  age.grp[age >= 55] <- 6
+
+  sqrt.age <- sqrt(age)
 
   dat$attr$age.grp <- age.grp
   dat$attr$age <- age
+  dat$attr$sqrt.age <- sqrt.age
+  dat$attr$age15 <- ifelse(dat$attr$age < 16, 1, 0)
 
   return(dat)
 }

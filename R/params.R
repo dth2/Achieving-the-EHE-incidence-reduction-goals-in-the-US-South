@@ -1,4 +1,5 @@
 
+
 # MSM -----------------------------------------------------------------
 
 #' @title Epidemic Model Parameters
@@ -171,60 +172,118 @@
 #'
 param_msm <- function(netstats,
 
-                      # Clinical
-                      hiv.test.rate = c(0.01325, 0.0125, 0.0124),
-                      hiv.test.late.prob = c(0.25, 0.25, 0.25),
-                      test.window.int = 21/7,
-                      tt.part.supp = c(0.20, 0.20, 0.20),
-                      tt.full.supp = c(0.40, 0.40, 0.40),
-                      tt.dur.supp = c(0.40, 0.40, 0.40),
-                      tx.init.prob = c(0.092, 0.092, 0.127),
-                      tx.halt.part.prob = c(0.0102, 0.0102, 0.0071),
-                      tx.halt.full.rr = c(0.9, 0.9, 0.9),
-                      tx.halt.dur.rr = c(0.5, 0.5, 0.5),
-                      tx.reinit.part.prob = c(0.00066, 0.00066, 0.00291),
-                      tx.reinit.full.rr = c(1.0, 1.0, 1.0),
-                      tx.reinit.dur.rr = c(1.0, 1.0, 1.0),
+# Clinical
+                      #artnet and nsfg
+                      hiv.test.rate = c(.018, 0.022, 0.012,0.0063,0.0041,0.0031,0.0063,0.0041,0.0031),
 
-                      # HIV natural history
+                      #aidsvue
+                      hiv.test.late.prob = c(0.204, 0.204, 0.204,0.204, 0.204, 0.204,0.204, 0.204, 0.204),
+
+                      test.window.int = 21/7,
+
+                      ##AHEAD 2019
+                      tt.part.supp = c(0.3591, 0.3844, 0.3190, 0.4306, 0.4531, 0.3950, 0.3873, 0.4115, 0.3490),
+                      tt.full.supp = c(0.6409, 0.6156, 0.6810, 0.5694, 0.5469, 0.6050, 0.6127, 0.5885, 0.6510),
+                      tt.dur.supp = c(0.0, 0.0, 0.0,0.0, 0.0, 0.0,0.0, 0.0, 0.0),
+
+                      ##AHEAD 2019
+                      tx.init.prob = c(0.315, 0.367, 0.350, 0.301, 0.347, 0.332, 0.3075, 0.357, 0.341),
+
+                      #Tune halt and reinit to get 75.59 on care
+                      tx.halt.part.prob = c(0.01, 0.01, 0.01,0.01, 0.01, 0.01,0.01, 0.01, 0.01),
+                      tx.halt.full.rr = c(0.9, 0.9, 0.9,0.9, 0.9, 0.9,0.9, 0.9, 0.9),
+                      tx.halt.dur.rr = c(0.5, 0.5, 0.5,0.5, 0.5, 0.5,0.5, 0.5, 0.5),
+                      tx.reinit.part.prob = c(0.00066, 0.00066, 0.00291,0.00066, 0.00066, 0.00291,0.00066, 0.00066, 0.00291),
+                      tx.reinit.full.rr = c(1.0, 1.0, 1.0,1.0, 1.0, 1.0,1.0, 1.0, 1.0),
+                      tx.reinit.dur.rr = c(1.0, 1.0, 1.0,1.0, 1.0, 1.0,1.0, 1.0, 1.0),
+
+                      ## Fixing ART a theoretical levels
+                      fixed.ART = FALSE,
+                      #after ART.time 1 selection is from ART naive to fix the coverage
+                      #after ART.time 2 selection is from ART experienced to fix the coverage
+                      fixed.ART.time = c(1,4),
+                      dem.cat.ART.fixed = c(0,0,0,0,0,0,0,0,0),
+                      dem.cat.ART.fixed.prop  = c(.95,.95,.95,.95,.95,.95,.95,.95,.95),
+
+
+#________________________________________________________________
+# HIV natural history
                       max.time.off.tx.full.int = 52 * 15,
                       max.time.on.tx.part.int = 52 * 10,
                       max.time.off.tx.part.int = 52 * 10,
-                      vl.acute.rise.int = 6.4,
-                      vl.acute.peak = 6.886,
-                      vl.acute.fall.int = 6.4,
-                      vl.set.point = 4.5,
-                      vl.aids.onset.int = 520,
-                      vl.aids.int = 104,
+                      #vl.acute.rise.int = 6.4,
+                      #vl.acute.peak = 6.886,
+                      #vl.acute.fall.int = 6.4,
+                      #vl.set.point = 4.5,
+                      #vl.aids.onset.int = 520,
+                      #vl.aids.int = 104,
+                      #vl.aids.peak = 7,
+                      #vl.full.supp = 1.5,
+                      #vl.part.supp = 3.5,
+                      #vl.tx.down.slope = 0.25,
+                      #vl.tx.aids.down.slope = 0.25,
+                      #vl.tx.up.slope = 0.25,
+                      #aids.mr = 1/104,
+
+
+                      vl.acute.rise.int = 1.7,  #rob et al 2016
+                      vl.acute.peak = 6.76,   #rob et al 2016
+                      vl.acute.fall.int = 2.86,  #rob et al 2016
+                      vl.set.point = 4.0, #rob et al 2016
+                      vl.aids.onset.int = 471, #rob et al 2016
+                      vl.aids.int = 40, #rob et al 2016
                       vl.aids.peak = 7,
                       vl.full.supp = 1.5,
                       vl.part.supp = 3.5,
                       vl.tx.down.slope = 0.25,
                       vl.tx.aids.down.slope = 0.25,
                       vl.tx.up.slope = 0.25,
-                      aids.mr = 1/104,
+                      aids.mr = 1/40, #rob et al 2016
 
-                      # Demographic
+
+
+                      #HIV fractions
+                      HIV.south = .00517,
+                      HIV.msm = c(0.278, 0.158, 0.196),
+                      HIV.het.m = c(0.064, 0.036, 0.045),
+                      HIV.het.f = c(0.098, 0.056, 0.069),
+
+#______________________________________________________________
+# Demographic
                       a.rate = 0.00052,
                       arrival.age = 15,
+                      bisex = c(0.264 , 0.124, 0.109),
 
-                      # HIV transmission prob
-                      URAI.prob = 0.008938,
-                      UIAI.prob = 0.003379,
-                      trans.scale = c(1, 1, 1),
+#______________________________________________________________
+# HIV transmission prob
+
+                      URAI.prob = 0.0138,
+                      UIAI.prob = 0.0011,
+                      URVI.prob = 0.0008,
+                      UIVI.prob = 0.0004,
+                      #multiplier on per contact trans by act type
+                      trans.by.act.type.scale = c(2.1,2.1,3.5,3.5),
+                      #multiplier of dem.cat specific transmission probability
+                      trans.scale = c(1.6, 1.3, 1.1, 1.4, 1.2, 1.2, 1.4, 1.2, 1.2),
                       acute.rr = 6,
                       circ.rr = 0.4,
                       cond.eff = 0.95,
-                      cond.fail = c(0.25, 0.25, 0.25),
+                      cond.fail = c(0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25),
                       circ.prob = c(0.874, 0.874, 0.918),
 
-                      # Behavioral
-                      epistats,
-                      acts.aids.vl = 5.75,
-                      acts.scale = 1,
-                      cond.scale = 1,
 
-                      # STI epi
+#______________________________________________________________
+# Behavioral
+
+                    epistats,
+                    acts.aids.vl = 5.75,
+                    acts.scale.msm = 1,
+                    cond.scale.msm = 1,
+                    acts.scale.het = 1,
+                    cond.scale.het = 1,
+
+#______________________________________________________________
+# STI epi
                       rgc.tprob = 0.35,
                       ugc.tprob = 0.25,
                       rct.tprob = 0.20,
@@ -251,19 +310,46 @@ param_msm <- function(netstats,
                       hiv.uct.rr = 1.73,
                       hiv.dual.rr = 0.2,
 
-                      # PrEP
+#______________________________________________________________
+## PrEP
                       riskh.start = Inf,
                       prep.start = Inf,
-                      prep.start.prob = 0.2,
-                      prep.adhr.dist = c(0.089, 0.127, 0.784),
+                      #cases per 100K MSM / HET (1351.2, 1.9, 1.9),
+                      #baseline coverage / 100K population MSM or het (surveillance cases allocated by relative population proportions by race)
+                      #count then rewighted to reflect race proportions given indication
+                      prep.base.cov = c(51.728, 96.728, 1202.744, .074, .136, 1.69, .074, .136, 1.69),
+                      #Adherence is MSM / HET althother the het data come from females
+                      prep.adhr.dist.msm = c(0.089, 0.127, 0.784),
+                      prep.adhr.dist.het = c(0.21, 0.13, 0.66),
+                      #adherence
                       prep.adhr.hr = c(0.69, 0.19, 0.01),
-                      prep.discont.rate = 1 - (2^(-1/(224.4237/7))),
+                      prep.discont.rate = c(.01488, .01162, .00596, .07, .07, .07, .025, .025, .025),
                       prep.tst.int = 90/7,
                       prep.risk.int = 182/7,
                       prep.sti.screen.int = 182/7,
                       prep.sti.prob.tx = 1,
                       prep.risk.reassess.method = "year",
-                      prep.require.lnt = TRUE,
+                      prep.require.lnt = FALSE,
+                      prep.fixed = FALSE,
+                      #after prep.time 1 selection is from ART naive to fix the coverage
+                      #after prep.time 2 selection is from ART experienced to fix the coverage
+                      fixed.prep.time = c(1,4),
+                      dem.cat.prep.fixed = c(1,1,0,1,0,1,1,1,0),
+                      dem.cat.prep.fixed.prop  = c(.5,.5,.5,.5,.5,.5,.5,.5,.5),
+
+
+#______________________________________________________________
+## Cure
+cure.time = c(520, 2599),
+prev.targ = round(c(.278, .158, .196, .064, .036, .045, .098, .056, .069)*(500000*.00517),0),
+
+#______________________________________________________________
+##Calibration
+inc.targ.south = 18.4,
+inc.targ.sex = c(22.1, 4.8),
+inc.targ.race = c(45.4, 22.4, 5.2),
+inc.targ.prop.msm = .71,
+
                       ...) {
 
   p <- get_args(formal.args = formals(sys.function()),
@@ -354,6 +440,19 @@ init_msm <- function(prev.ugc = 0.005,
 #'        active partnerships.
 #' @param verbose If \code{TRUE}, print out simulation progress to the console
 #'        if in interactive mode or text files if in batch mode.
+#' @param mcmc.control.tergm.1,mcmc.control.tergm.2,mcmc.control.ergm.3 Control
+#'        arguments for network simulation in \code{tergmLite}.
+#' @param tergmLite.track.duration logical; should we track durational information
+#'        (\code{time} and \code{lasttoggle}) for \code{tergm} models in
+#'        \code{tergmLite} simulation?  If \code{TRUE}, the \code{time} and
+#'        \code{lasttoggle} values are initialized from the network attributes
+#'        of the networks passed to \code{init_tergmLite}, with \code{time}
+#'        defaulting to \code{0} and \code{lasttoggle} defaulting to all
+#'        \code{lasttoggle} times unspecified (effectively \code{-INT_MAX/2}).
+#' @param tergmLite Logical indicating usage of either \code{tergm} (\code{tergmLite = FALSE}),
+#'        or \code{tergmLite} (\code{tergmLite = TRUE}). Default of \code{FALSE}.
+#' @param nwstats.formula.1,nwstats.formula.2,nwstats.formula.3 Monitoring
+#'        formulas for networks 1, 2, and 3.
 #' @param ... Additional arguments passed to the function.
 #'
 #' @return
@@ -377,20 +476,114 @@ control_msm <- function(simno = 1,
                         hivprogress.FUN = hivprogress_msm,
                         hivvl.FUN = hivvl_msm,
                         resim_nets.FUN = simnet_msm,
+                        cure.FUN = cure_prev,
                         acts.FUN = acts_msm,
                         condoms.FUN = condoms_msm,
                         position.FUN = position_msm,
                         prep.FUN = prep_msm,
                         hivtrans.FUN = hivtrans_msm,
-                        stitrans.FUN = stitrans_msm,
-                        stirecov.FUN = stirecov_msm,
-                        stitx.FUN = stitx_msm,
+                        #stitrans.FUN = stitrans_msm,
+                        #stirecov.FUN = stirecov_msm,
+                        #stitx.FUN = stitx_msm,
                         prev.FUN = prevalence_msm,
                         verbose.FUN = verbose.net,
-                        save.nwstats = FALSE,
+                        save.nwstats = TRUE,
                         save.clin.hist = FALSE,
                         truncate.plist = TRUE,
                         verbose = TRUE,
+                        nwstats.formula.1 = ~edges +
+                          nodematch("age.grp", diff = TRUE) +
+                          nodefactor("age.grp", levels = -1) +
+                          absdiff(~age + 2.0*(sex == 2)) +
+                          nodematch("race", diff = TRUE) +
+                          nodefactor("race", levels = -1) +
+                          nodefactor("deg.casl.c.het", levels = -1) +
+                          nodefactor("age15", levels = -1) +
+                          concurrent +
+                          degrange(from = 3) +
+                          offset(nodematch("sex", diff = FALSE)) +
+                          offset(nodefactor("het", levels = -2)),
+                        nwstats.formula.2 = ~edges +
+                          nodematch("age.grp", diff = TRUE) +
+                          nodefactor("age.grp", levels = -6) +
+                          absdiff(~age + 2.0*(sex == 2)) +
+                          nodefactor("deg.main.c.het", levels = -1) +
+                          concurrent +
+                          degrange(from = 4) +
+                          #If race = TRUE:
+                          nodematch("race", diff = TRUE) +
+                          nodefactor("race", levels = -1) +
+                          nodefactor("age15", levels = -1) +
+                          offset(nodematch("sex", diff = FALSE)) +
+                          offset(nodefactor("het", levels = -2)),
+                        nwstats.formula.3 = ~edges +
+                          nodematch("age.grp", diff = FALSE) +
+                          nodefactor("age.grp", levels = c(-5,-6)) +
+                          absdiff(~age + 2.0*(sex == 2)) +
+                          nodefactor("risk.grp", levels = 5) +
+                          nodefactor("deg.tot.c.het", levels = -1) +
+                          nodematch("race", diff = TRUE) +
+                          nodefactor("race", levels = -3) +
+                          offset(nodematch("sex", diff = FALSE)) +
+                          offset(nodefactor("het", levels = -2)),
+                        nwstats.formula.4 = ~edges +
+                          nodematch("age.grp", diff = TRUE) +
+                          nodefactor("age.grp", levels = -1) +
+                          absdiff("sqrt.age") +
+                          nodematch("race", diff = TRUE) +
+                          nodefactor("race", levels = -1) +
+                          nodefactor("deg.casl.c.msm", levels = -1) +
+                          nodefactor("age15", levels = -1) +
+                          concurrent +
+                          degrange(from = 3) +
+                          nodematch("role.class", diff = TRUE, levels = 1:2) +
+                          offset(nodefactor("msm", levels = -2)),
+                        nwstats.formula.5 = ~edges +
+                          nodematch("age.grp", diff = TRUE) +
+                          nodefactor("age.grp", levels = c(-5,-6)) +
+                          absdiff("sqrt.age") +
+                          nodefactor("deg.main.c.msm", levels = -1) +
+                          concurrent +
+                          degrange(from = 4) +
+                          nodematch("race", diff = TRUE) +
+                          nodefactor("race", levels = -3) +
+                          nodefactor("age15", levels = -1) +
+                          nodematch("role.class", diff = TRUE, levels = 1:2) +
+                          offset(nodefactor("msm", levels = -2)),
+                        nwstats.formula.6 = ~edges +
+                          nodematch("age.grp", diff = FALSE) +
+                          nodefactor("age.grp", levels = -1) +
+                          absdiff("sqrt.age") +
+                          nodefactor("risk.grp", levels = -5) +
+                          nodefactor("deg.tot.c.msm", levels = -1) +
+                          nodematch("race", diff = TRUE) +
+                          nodefactor("race", levels = -1) +
+                          nodematch("role.class", diff = TRUE, levels = 1:2) +
+                          offset(nodefactor("msm", levels = -2)),
+                        mcmc.control.tergm.1 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr = ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse,
+                                                                              MCMC.maxchanges = 1e8,
+                                                                              MCMC.burnin.min =1.7e5,
+                                                                              MCMC.burnin.max =1.5e6),
+                        mcmc.control.tergm.2 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr = ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse,
+                                                                              MCMC.maxchanges = 1e8,
+                                                                              MCMC.burnin.min =1.7e5,
+                                                                              MCMC.burnin.max =1.5e6),
+                        mcmc.control.ergm.3 = control.simulate.formula(MCMC.prop = ~strat(attr = ~paste(age.grp, race, het), empirical = TRUE) + sparse,
+                                                                       MCMC.burnin=3e6,
+                                                                       MCMC.interval=3e5),
+                        mcmc.control.tergm.4 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse,
+                                                                              MCMC.maxchanges = 1e8,
+                                                                              MCMC.burnin.min =1.7e5,
+                                                                              MCMC.burnin.max =1.5e6),
+                        mcmc.control.tergm.5 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse,
+                                                                              MCMC.maxchanges = 1e8,
+                                                                              MCMC.burnin.min =1.7e5,
+                                                                              MCMC.burnin.max =1.5e6),
+                        mcmc.control.ergm.6 = control.simulate.formula(MCMC.prop = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + sparse,
+                                                                       MCMC.burnin=3.2e6,
+                                                                       MCMC.interval=4.2e5),
+                        tergmLite.track.duration = TRUE,
+                        tergmLite = FALSE,
                         ...) {
 
   formal.args <- formals(sys.function())
@@ -411,11 +604,13 @@ control_msm <- function(simno = 1,
   p$save.network <- FALSE
   p$verbose.int <- 1
 
-  class(p) <- "control.net"
+  p <- set.control.class("control.net", p)
   return(p)
 }
 
-
+#' @rdname control_msm
+#' @export
+control.net <- control_msm
 
 # HET -----------------------------------------------------------------
 
@@ -714,6 +909,10 @@ init_het <- function(i.prev.male = 0.05,
 #' @param verbose If \code{TRUE}, print progress to console.
 #' @param skip.check If \code{TRUE}, skips the error check for parameter values,
 #'        initial conditions, and control settings before running the models.
+#' @param mcmc.control.tergm Control argument for network simulation in \code{tergmLite}.
+#' @param tergmLite Logical indicating usage of either \code{tergm} (\code{tergmLite = FALSE}),
+#'        or \code{tergmLite} (\code{tergmLite = TRUE}). Default of \code{FALSE}.
+#' @param nwstats.formula Monitoring formula (for the only network).
 #' @param ... Additional arguments passed to the function.
 #'
 #' @details This function sets the parameters for the models.
@@ -745,6 +944,9 @@ control_het <- function(simno = 1,
                         save.other = c("el", "attr"),
                         verbose = TRUE,
                         skip.check = TRUE,
+                        mcmc.control.tergm = control.simulate.formula.tergm(),
+                        tergmLite = FALSE,
+                        nwstats.formula = "formation",
                         ...) {
 
   p <- list()

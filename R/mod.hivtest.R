@@ -21,6 +21,7 @@ hivtest_msm <- function(dat, at) {
 
   ## Variables
 
+
   # Attributes
   diag.status <- dat$attr$diag.status
   race <- dat$attr$race
@@ -28,6 +29,7 @@ hivtest_msm <- function(dat, at) {
   inf.time <- dat$attr$inf.time
   stage <- dat$attr$stage
   late.tester <- dat$attr$late.tester
+  dem.cat <- dat$attr$dem.cat
 
   prepStat <- dat$attr$prepStat
   prep.tst.int <- dat$param$prep.tst.int
@@ -45,7 +47,7 @@ hivtest_msm <- function(dat, at) {
                 prepStat == 0 & late.tester == 0)
 
   # Interval testing rates by race
-  rates <- hiv.test.rate[race[elig]]
+  rates <- hiv.test.rate[dem.cat[elig]]
   idsTstGen <- elig[rbinom(length(elig), 1, rates) == 1]
 
   # Late testing (Neg, then AIDS)
@@ -67,6 +69,7 @@ hivtest_msm <- function(dat, at) {
   tstAll <- c(idsTstGen, idsTstLate, idsTstAIDS, idsTstPrEP)
 
   tstPos <- tstAll[status[tstAll] == 1 & inf.time[tstAll] <= at - twind.int]
+  tstPos <- tstPos[!is.na(tstPos)]
   tstNeg <- setdiff(tstAll, tstPos)
 
   # Attributes
@@ -83,6 +86,20 @@ hivtest_msm <- function(dat, at) {
   dat$epi$tot.tests.B[at] <- length(intersect(tstAll, which(race == 1)))
   dat$epi$tot.tests.H[at] <- length(intersect(tstAll, which(race == 2)))
   dat$epi$tot.tests.W[at] <- length(intersect(tstAll, which(race == 3)))
+
+  dat$epi$tot.tests.B.msm[at] <- length(intersect(tstAll, which(dem.cat == 1)))
+  dat$epi$tot.tests.H.msm[at] <- length(intersect(tstAll, which(dem.cat == 2)))
+  dat$epi$tot.tests.W.msm[at] <- length(intersect(tstAll, which(dem.cat == 3)))
+
+  dat$epi$tot.tests.B.het.m[at] <- length(intersect(tstAll, which(dem.cat == 4)))
+  dat$epi$tot.tests.H.het.m[at] <- length(intersect(tstAll, which(dem.cat == 5)))
+  dat$epi$tot.tests.W.het.m[at] <- length(intersect(tstAll, which(dem.cat == 6)))
+
+  dat$epi$tot.tests.B.het.f[at] <- length(intersect(tstAll, which(dem.cat == 7)))
+  dat$epi$tot.tests.H.het.f[at] <- length(intersect(tstAll, which(dem.cat == 8)))
+  dat$epi$tot.tests.W.het.f[at] <- length(intersect(tstAll, which(dem.cat == 9)))
+
+
   dat$epi$tot.tests.nprep[at] <- length(c(idsTstGen, idsTstLate, idsTstAIDS))
 
   dat$epi$tot.neg.tests[at] <- length(tstNeg)

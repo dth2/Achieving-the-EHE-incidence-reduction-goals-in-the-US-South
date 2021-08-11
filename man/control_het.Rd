@@ -5,15 +5,35 @@
 \title{Control Settings for Stochastic Network Model of HIV-1 Infection in
        Sub-Saharan Africa}
 \usage{
-control_het(simno = 1, nsteps = 100, start = 1, nsims = 1,
-  ncores = 1, par.type = "single", initialize.FUN = initialize_het,
-  aging.FUN = aging_het, cd4.FUN = cd4_het, vl.FUN = vl_het,
-  dx.FUN = dx_het, tx.FUN = tx_het, deaths.FUN = deaths_het,
-  births.FUN = births_het, resim_nets.FUN = simnet_het,
-  trans.FUN = trans_het, prev.FUN = prevalence_het,
-  verbose.FUN = verbose.net, module.order = NULL,
-  save.nwstats = FALSE, save.other = c("el", "attr"), verbose = TRUE,
-  skip.check = TRUE, ...)
+control_het(
+  simno = 1,
+  nsteps = 100,
+  start = 1,
+  nsims = 1,
+  ncores = 1,
+  par.type = "single",
+  initialize.FUN = initialize_het,
+  aging.FUN = aging_het,
+  cd4.FUN = cd4_het,
+  vl.FUN = vl_het,
+  dx.FUN = dx_het,
+  tx.FUN = tx_het,
+  deaths.FUN = deaths_het,
+  births.FUN = births_het,
+  resim_nets.FUN = simnet_het,
+  trans.FUN = trans_het,
+  prev.FUN = prevalence_het,
+  verbose.FUN = verbose.net,
+  module.order = NULL,
+  save.nwstats = FALSE,
+  save.other = c("el", "attr"),
+  verbose = TRUE,
+  skip.check = TRUE,
+  mcmc.control.tergm = control.simulate.formula.tergm(),
+  tergmLite = FALSE,
+  nwstats.formula = "formation",
+  ...
+)
 }
 \arguments{
 \item{simno}{Simulation ID number.}
@@ -73,6 +93,13 @@ The \code{initialize.FUN} will always be run first and the
 
 \item{skip.check}{If \code{TRUE}, skips the error check for parameter values,
 initial conditions, and control settings before running the models.}
+
+\item{mcmc.control.tergm}{Control argument for network simulation in \code{tergmLite}.}
+
+\item{tergmLite}{Logical indicating usage of either \code{tergm} (\code{tergmLite = FALSE}),
+or \code{tergmLite} (\code{tergmLite = TRUE}). Default of \code{FALSE}.}
+
+\item{nwstats.formula}{Monitoring formula (for the only network).}
 
 \item{...}{Additional arguments passed to the function.}
 }

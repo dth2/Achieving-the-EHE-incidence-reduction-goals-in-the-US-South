@@ -22,6 +22,7 @@
 #'
 condoms_msm <- function(dat, at) {
 
+
   # Attributes
   race <- dat$attr$race
   age <- dat$attr$age
@@ -29,10 +30,14 @@ condoms_msm <- function(dat, at) {
   prepStat <- dat$attr$prepStat
 
   # Condom Use Models
-  cond.mc.mod <- dat$param$epistats$cond.mc.mod
-  cond.oo.mod <- dat$param$epistats$cond.oo.mod
+  cond.mc.mod.het <- dat$param$epistats$cond.mc.mod.het
+  cond.oo.mod.het <- dat$param$epistats$cond.oo.mod.het
 
-  cond.scale <- dat$param$cond.scale
+  cond.mc.mod.msm <- dat$param$epistats$cond.mc.mod.msm
+  cond.oo.mod.msm <- dat$param$epistats$cond.oo.mod.msm
+
+  cond.scale.het <- dat$param$cond.scale.het
+  cond.scale.msm <- dat$param$cond.scale.msm
 
   # Temp edgelist
   el <- dat$temp$el
@@ -53,50 +58,90 @@ condoms_msm <- function(dat, at) {
 
   any.prep <- as.numeric((prepStat[el[, 1]] + prepStat[el[, 2]]) > 0)
 
-  ## Main/casual partnerships ##
+  ## Main/casual partnerships het
   mc.parts <- which(el[, "ptype"] != 3)
+  mc.parts <- which(el[, "ptype"] != 3 & el[, "ptype"] != 6)
   el.mc <- el[mc.parts, ]
 
-  x <- data.frame(ptype = el.mc[, "ptype"],
+  x <- data.frame(ptype = el.mc[, "ptype.het"],
                   duration = el.mc[, "durations"],
                   race.combo = race.combo[mc.parts],
                   comb.age = comb.age[mc.parts],
-                  hiv.concord.pos = hiv.concord.pos[mc.parts],
-                  prep = any.prep[mc.parts],
-                  city = 1)
-  cond.prob <- unname(predict(cond.mc.mod, newdata = x, type = "response"))
-  el.mc <- cbind(el.mc, cond.prob)
+                  adol = el.mc[, "adol"])
+  cond.prob.het <- unname(predict(cond.mc.mod.het, newdata = x, type = "response"))
+  el.mc <- cbind(el.mc, cond.prob.het)
 
-  ## One-off partnerships ##
-  oo.parts <- which(el[, "ptype"] == 3)
+
+  ## Main/casual partnerships MSM
+
+  x <- data.frame(ptype = el.mc[, "ptype.msm"],
+                  duration = el.mc[, "durations"],
+                  race.combo = race.combo[mc.parts],
+                  comb.age = comb.age[mc.parts],
+                  adol = el.mc[, "adol"])
+  cond.prob.msm <- unname(predict(cond.mc.mod.msm, newdata = x, type = "response"))
+  el.mc <- cbind(el.mc, cond.prob.msm)
+
+
+
+  ## One-off partnerships het
+  oo.parts <- which(el[, "ptype"] == 3 | el[, "ptype"] == 6)
   el.oo <- el[oo.parts, ]
 
   x <- data.frame(race.combo = race.combo[oo.parts],
                   comb.age = comb.age[oo.parts],
-                  hiv.concord.pos = hiv.concord.pos[oo.parts],
-                  prep = any.prep[oo.parts],
-                  city = 1)
-  cond.prob <- unname(predict(cond.oo.mod, newdata = x, type = "response"))
-  el.oo <- cbind(el.oo, cond.prob)
+                  adol = el.oo[, "adol"])
+  cond.prob.het <- unname(predict(cond.oo.mod.het, newdata = x, type = "response"))
+  el.oo <- cbind(el.oo, cond.prob.het)
+
+  ## One-off partnerships msm
+
+  x <- data.frame(race.combo = race.combo[oo.parts],
+                  comb.age = comb.age[oo.parts],
+                  adol = el.oo[, "adol"])
+  cond.prob.msm <- unname(predict(cond.oo.mod.msm, newdata = x, type = "response"))
+  el.oo <- cbind(el.oo, cond.prob.msm)
+
 
   ## Bind el together
   el <- rbind(el.mc, el.oo)
 
-  # Acts
-  ai.vec <- el[, "ai"]
-  pid <- rep(1:length(ai.vec), ai.vec)
-  p1 <- rep(el[, "p1"], ai.vec)
-  p2 <- rep(el[, "p2"], ai.vec)
-  ptype <- rep(el[, "ptype"], ai.vec)
-  cond.prob <- rep(el[, "cond.prob"], ai.vec)
+  el.het <- el[el[, "ptype"] < 4, ]
+  el.msm <- el[el[, "ptype"] > 3, ]
 
-  cond.prob <- cond.prob * cond.scale
 
-  # UAI draw per act
-  uai <- rbinom(length(cond.prob), 1, 1 - cond.prob)
+  # Acts VI
+  vi.vec <- el.het[, "vi"]
+  pid.het <- rep(1:length(vi.vec), vi.vec)
+  p1.het <- rep(el.het[, "p1"], vi.vec)
+  p2.het <- rep(el.het[, "p2"], vi.vec)
+  ptype.het <- rep(el.het[, "ptype"], vi.vec)
+  cond.prob.het <- rep(el.het[, "cond.prob.het"], vi.vec)
+
+  cond.prob.het <- cond.prob.het * cond.scale.het
+
+  # Acts AI
+  ai.vec <- el.msm[, "ai"]
+  pid.msm <- rep((length(vi.vec)+1):((length(vi.vec)+length(ai.vec))), ai.vec)
+  p1.msm <- rep(el.msm[, "p1"], ai.vec)
+  p2.msm <- rep(el.msm[, "p2"], ai.vec)
+  ptype.msm <- rep(el.msm[, "ptype"], ai.vec)
+  cond.prob.msm <- rep(el.msm[, "cond.prob.msm"], ai.vec)
+
+  cond.prob.msm <- cond.prob.msm * cond.scale.msm
+
+  # UI draw per act
+  uvi <- rbinom(length(cond.prob.het), 1, 1 - cond.prob.het)
+  uai <- rbinom(length(cond.prob.msm), 1, 1 - cond.prob.msm)
 
   # Act list construction
-  al <- cbind(p1, p2, ptype, uai, pid)
+  p1 <- c(p1.het,p1.msm)
+  p2 <- c(p2.het,p2.msm)
+  ptype <- c(ptype.het, ptype.msm)
+  ui <- c(uvi, uai)
+  pid <- c(pid.het, pid.msm)
+
+  al <- cbind(p1, p2, ptype, ui, pid)
   dat$temp$al <- al
 
   return(dat)

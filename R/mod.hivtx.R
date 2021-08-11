@@ -26,8 +26,10 @@
 #'
 hivtx_msm <- function(dat, at) {
 
+
   # Attributes
   race <- dat$attr$race
+  dem.cat <- dat$attr$dem.cat
   status <- dat$attr$status
   tx.status <- dat$attr$tx.status
   diag.status <- dat$attr$diag.status
@@ -47,57 +49,135 @@ hivtx_msm <- function(dat, at) {
   tx.reinit.full.rr <- dat$param$tx.reinit.full.rr
   tx.reinit.dur.rr <- dat$param$tx.reinit.full.rr
 
-  if (at == 3381) {
-    races <- sort(unique(race))
-    for (i in races) {
-      ids.race <- which(dat$attr$race == i)
-      tt.traj[ids.race] <- sample(1:3, length(ids.race), TRUE,
-                                  c(dat$param$tt.part.supp[i],
-                                    dat$param$tt.full.supp[i],
-                                    dat$param$tt.dur.supp[i]))
-    }
-  }
+  # if (at == 3381) {
+  #   races <- sort(unique(race))
+  #   for (i in races) {
+  #     ids.race <- which(dat$attr$race == i)
+  #     tt.traj[ids.race] <- sample(1:3, length(ids.race), TRUE,
+  #                                 c(dat$param$tt.part.supp[i],
+  #                                   dat$param$tt.full.supp[i],
+  #                                   dat$param$tt.dur.supp[i]))
+  #   }
+  # }
 
   ## Initiation
   tx.init.elig <- which(status == 1 &
                         tx.status == 0 &
                         diag.status == 1 &
                         cuml.time.on.tx == 0)
-  rates <- tx.init.prob[race[tx.init.elig]]
+  rates <- tx.init.prob[dem.cat[tx.init.elig]]
   tx.init <- tx.init.elig[rbinom(length(tx.init.elig), 1, rates) == 1]
+
+  ## Initiation for fixed ART coverage
+  tx.init.fixed <- NULL
+  if(dat$param$fixed.ART == TRUE & at >= dat$param$fixed.ART.time[1] & at < dat$param$fixed.ART.time[2]){
+
+    for(i in 1:9){
+
+      if(dat$param$dem.cat.ART.fixed[i]==1){
+        prop <- dat$param$dem.cat.ART.fixed.prop[i]
+        pos <- which(dem.cat == i & status == 1)
+        on.ART <- which(dem.cat == i & tx.status == 1)
+        off.ART <- which(dem.cat == i & tx.status == 0)
+        ART.naive <- which(dem.cat == i & tx.status == 0 & cuml.time.on.tx == 0)
+        prop.on.ART <- length(on.ART)/length(pos)
+        if(prop.on.ART < prop){
+          new.starts <- (prop - prop.on.ART) * length(pos)
+          new.starts <- sample(ART.naive,new.starts, replace = FALSE)
+          tx.init.fixed <-c(new.starts, tx.init.fixed)
+        }
+}
+
+    }
+
+    tx.init <- union(tx.init, tx.init.fixed)
+
+  }
 
   ## Halting
   tx.halt.part.elig <- which(tx.status == 1 & tt.traj == 1)
-  rates.part <- tx.halt.part.prob[race[tx.halt.part.elig]]
+  rates.part <- tx.halt.part.prob[dem.cat[tx.halt.part.elig]]
   tx.halt.part <- tx.halt.part.elig[rbinom(length(tx.halt.part.elig), 1, rates.part) == 1]
 
   tx.halt.full.elig <- which(tx.status == 1 & tt.traj == 2)
-  rates.full <- tx.halt.part.prob[race[tx.halt.full.elig]] * tx.halt.full.rr[race[tx.halt.full.elig]]
+  rates.full <- tx.halt.part.prob[dem.cat[tx.halt.full.elig]] * tx.halt.full.rr[dem.cat[tx.halt.full.elig]]
   tx.halt.full <- tx.halt.full.elig[rbinom(length(tx.halt.full.elig), 1, rates.full) == 1]
 
   tx.halt.dur.elig <- which(tx.status == 1 & tt.traj == 3)
-  rates.dur <- tx.halt.part.prob[race[tx.halt.dur.elig]] * tx.halt.dur.rr[race[tx.halt.dur.elig]]
+  rates.dur <- tx.halt.part.prob[dem.cat[tx.halt.dur.elig]] * tx.halt.dur.rr[dem.cat[tx.halt.dur.elig]]
   tx.halt.dur <- tx.halt.dur.elig[rbinom(length(tx.halt.dur.elig), 1, rates.dur) == 1]
 
   tx.halt <- c(tx.halt.part, tx.halt.full, tx.halt.dur)
 
+  ## Halting for fixed ART coverage
+  tx.init.fixed.halt <- NULL
+  if(dat$param$fixed.ART == TRUE  & at >= dat$param$fixed.ART.time[1]){
+
+    for(i in 1:9){
+
+      if(dat$param$dem.cat.ART.fixed[i]==1){
+        prop <- dat$param$dem.cat.ART.fixed.prop[i]
+        pos <- which(dem.cat == i & status == 1)
+        on.ART <- which(dem.cat == i & tx.status == 1)
+        off.ART <- which(dem.cat == i & tx.status == 0)
+        ART.naive <- which(dem.cat == i & tx.status == 0 & cuml.time.on.tx == 0)
+        prop.on.ART <- length(on.ART)/length(pos)
+        if(prop.on.ART > prop){
+          new.halt <- (prop.on.ART - prop) * length(pos)
+          new.halt <- sample(on.ART,new.halt, replace = FALSE)
+          tx.init.fixed.halt <-c(new.halt, tx.init.fixed.halt)
+        }
+      }
+
+    }
+
+    tx.halt <- union(tx.halt,tx.init.fixed.halt)
+
+  }
+
   ## Restarting
   tx.reinit.part.elig <- which(tx.status == 0 & tt.traj == 1 &
                                cuml.time.on.tx > 0)
-  rates.part <- tx.reinit.part.prob[race[tx.reinit.part.elig]]
+  rates.part <- tx.reinit.part.prob[dem.cat[tx.reinit.part.elig]]
   tx.reinit.part <- tx.reinit.part.elig[rbinom(length(tx.reinit.part.elig), 1, rates.part) == 1]
 
   tx.reinit.full.elig <- which(tx.status == 0 & tt.traj == 2 &
                                cuml.time.on.tx > 0)
-  rates.full <- tx.reinit.part.prob[race[tx.reinit.full.elig]] * tx.reinit.full.rr[race[tx.reinit.full.elig]]
+  rates.full <- tx.reinit.part.prob[dem.cat[tx.reinit.full.elig]] * tx.reinit.full.rr[dem.cat[tx.reinit.full.elig]]
   tx.reinit.full <- tx.reinit.full.elig[rbinom(length(tx.reinit.full.elig), 1, rates.full) == 1]
 
   tx.reinit.dur.elig <- which(tx.status == 0 & tt.traj == 3 &
                               cuml.time.on.tx > 0)
-  rates.dur <- tx.reinit.part.prob[race[tx.reinit.dur.elig]] * tx.reinit.dur.rr[race[tx.reinit.dur.elig]]
+  rates.dur <- tx.reinit.part.prob[dem.cat[tx.reinit.dur.elig]] * tx.reinit.dur.rr[dem.cat[tx.reinit.dur.elig]]
   tx.reinit.dur <- tx.reinit.dur.elig[rbinom(length(tx.reinit.dur.elig), 1, rates.dur) == 1]
 
   tx.reinit <- c(tx.reinit.part, tx.reinit.full, tx.reinit.dur)
+
+  ## Restarting with fixed coverage
+  tx.init.fixed.reinit <- NULL
+  if(dat$param$fixed.ART == TRUE & at >= dat$param$fixed.ART.time[2]){
+
+    for(i in 1:9){
+
+      if(dat$param$dem.cat.ART.fixed[i]==1){
+        prop <- dat$param$dem.cat.ART.fixed.prop[i]
+        pos <- which(dem.cat == i & status == 1)
+        on.ART <- which(dem.cat == i & tx.status == 1)
+        off.ART <- which(dem.cat == i & tx.status == 0)
+        ART.exp <- which(dem.cat == i & tx.status == 0 & cuml.time.on.tx > 0)
+        prop.on.ART <- length(on.ART)/length(pos)
+        if(prop.on.ART < prop){
+          new.starts <- (prop - prop.on.ART) * length(pos)
+          new.starts <- sample(ART.exp,new.starts, replace = FALSE)
+          tx.init.fixed.reinit <-c(new.starts, tx.init.fixed.reinit)
+        }
+      }
+
+    }
+
+    tx.reinit <- union(tx.reinit, tx.init.fixed.reinit)
+
+  }
 
   ## Update Attributes
   tx.status[tx.init] <- 1

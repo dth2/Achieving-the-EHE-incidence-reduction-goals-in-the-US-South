@@ -1,4 +1,5 @@
 
+
 # MSM -----------------------------------------------------------------
 
 #' @title Network Resimulation Module
@@ -14,57 +15,157 @@
 #'
 simnet_msm <- function(dat, at) {
 
+
+
   ## Edges correction
   dat <- edges_correct_msm(dat, at)
 
-  ## Main network
+  ## Main heterosexual network
   nwparam.m <- EpiModel::get_nwparam(dat, network = 1)
 
-  dat$attr$deg.casl <- get_degree(dat$el[[2]])
-  dat <- tergmLite::updateModelTermInputs(dat, network = 1)
+  dat$attr$deg.casl.het <- get_degree(dat$el[[2]])
+  dat$attr$deg.casl.c.het <- ifelse(dat$attr$deg.casl.het > 1, 1,dat$attr$deg.casl.het)
 
-  dat$el[[1]] <- tergmLite::simulate_network(p = dat$p[[1]],
-                                             el = dat$el[[1]],
-                                             coef.form = nwparam.m$coef.form,
-                                             coef.diss = nwparam.m$coef.diss$coef.adj,
-                                             save.changes = TRUE)
+   dat <- tergmLite::updateModelTermInputs(dat, network = 1)
+
+  rv_1 <- tergmLite::simulate_network(state = dat$p[[1]]$state,
+                                      coef = c(nwparam.m$coef.form, nwparam.m$coef.diss$coef.adj),
+                                      control = dat$control$mcmc.control[[1]],
+                                      save.changes = TRUE)
+
+
+  dat$el[[1]] <- rv_1$el
+
+  if(dat$control$tergmLite.track.duration) {
+    dat$p[[1]]$state$nw0 %n% "time" <- rv_1$state$nw0 %n% "time"
+    dat$p[[1]]$state$nw0 %n% "lasttoggle" <- rv_1$state$nw0 %n% "lasttoggle"
+  }
 
   plist1 <- update_plist(dat, at, ptype = 1)
 
 
-  ## Casual network
+  ## Main MSM network
+  nwparam.m <- EpiModel::get_nwparam(dat, network = 4)
+
+  dat$attr$deg.casl.msm <- get_degree(dat$el[[5]])
+  dat$attr$deg.casl.c.msm <- ifelse(dat$attr$deg.casl.msm > 1, 1, dat$attr$deg.casl.msm)
+
+  dat <- tergmLite::updateModelTermInputs(dat, network = 4)
+
+  rv_4 <- tergmLite::simulate_network(state = dat$p[[4]]$state,
+                                      coef = c(nwparam.m$coef.form, nwparam.m$coef.diss$coef.adj),
+                                      control = dat$control$mcmc.control[[4]],
+                                      save.changes = TRUE)
+  dat$el[[4]] <- rv_4$el
+
+  if(dat$control$tergmLite.track.duration) {
+    dat$p[[4]]$state$nw0 %n% "time" <- rv_4$state$nw0 %n% "time"
+    dat$p[[4]]$state$nw0 %n% "lasttoggle" <- rv_4$state$nw0 %n% "lasttoggle"
+  }
+
+  plist4 <- update_plist(dat, at, ptype = 4)
+
+
+  ## Casual heterosexual network
+
   nwparam.p <- EpiModel::get_nwparam(dat, network = 2)
 
-  dat$attr$deg.main <- get_degree(dat$el[[1]])
+  dat$attr$deg.main.het <- get_degree(dat$el[[1]])
+  dat$attr$deg.main.c.het <- ifelse(dat$attr$deg.main.het > 1, 1, dat$attr$deg.main.het)
+
   dat <- tergmLite::updateModelTermInputs(dat, network = 2)
 
-  dat$el[[2]] <- tergmLite::simulate_network(p = dat$p[[2]],
-                                             el = dat$el[[2]],
-                                             coef.form = nwparam.p$coef.form,
-                                             coef.diss = nwparam.p$coef.diss$coef.adj,
-                                             save.changes = TRUE)
+  rv_2 <- tergmLite::simulate_network(state = dat$p[[2]]$state,
+                                      coef = c(nwparam.p$coef.form, nwparam.p$coef.diss$coef.adj),
+                                      control = dat$control$mcmc.control[[2]],
+                                      save.changes = TRUE)
+  dat$el[[2]] <- rv_2$el
+
+  dat$attr$deg.casl.het <- get_degree(dat$el[[2]])
+  dat$attr$deg.casl.c.het <- ifelse(dat$attr$deg.casl.het > 1, 1, dat$attr$deg.casl.het)
+
+  if(dat$control$tergmLite.track.duration) {
+    dat$p[[2]]$state$nw0 %n% "time" <- rv_2$state$nw0 %n% "time"
+    dat$p[[2]]$state$nw0 %n% "lasttoggle" <- rv_2$state$nw0 %n% "lasttoggle"
+  }
 
   plist2 <- update_plist(dat, at, ptype = 2)
 
-  dat$temp$plist <- rbind(plist1, plist2)
+
+
+  ## Casual msm network
+
+  nwparam.p <- EpiModel::get_nwparam(dat, network = 5)
+
+  dat$attr$deg.main.msm <- get_degree(dat$el[[4]])
+  dat$attr$deg.main.c.msm <- ifelse(dat$attr$deg.main.msm > 1, 1, dat$attr$deg.main.msm)
+
+  dat <- tergmLite::updateModelTermInputs(dat, network = 5)
+
+  rv_5 <- tergmLite::simulate_network(state = dat$p[[5]]$state,
+                                      coef = c(nwparam.p$coef.form, nwparam.p$coef.diss$coef.adj),
+                                      control = dat$control$mcmc.control[[5]],
+                                      save.changes = TRUE)
+  dat$el[[5]] <- rv_5$el
+
+  dat$attr$deg.casl.msm <- get_degree(dat$el[[5]])
+  dat$attr$deg.casl.c.msm <- ifelse(dat$attr$deg.casl.msm > 1, 1, dat$attr$deg.casl.msm)
+
+  if(dat$control$tergmLite.track.duration) {
+    dat$p[[5]]$state$nw0 %n% "time" <- rv_5$state$nw0 %n% "time"
+    dat$p[[5]]$state$nw0 %n% "lasttoggle" <- rv_5$state$nw0 %n% "lasttoggle"
+  }
+
+  plist5 <- update_plist(dat, at, ptype = 5)
+
+  dat$temp$plist <- rbind(plist1, plist2, plist4, plist5)
   if (dat$control$truncate.plist == TRUE) {
     to.keep <- which(is.na(dat$temp$plist[, "stop"]))
     dat$temp$plist <- dat$temp$plist[to.keep, ]
   }
 
-  ## One-off network
+
+  ## One-off heterosexual network
   nwparam.i <- EpiModel::get_nwparam(dat, network = 3)
 
-  dat$attr$deg.tot <- pmin(dat$attr$deg.main + get_degree(dat$el[[2]]), 3)
+  dat$attr$deg.tot.het <- pmin(dat$attr$deg.main.het + get_degree(dat$el[[2]]), 3)
+  dat$attr$deg.tot.c.het <- ifelse(dat$attr$deg.tot.het > 2, 2, dat$attr$deg.tot.het)
+
   dat <- tergmLite::updateModelTermInputs(dat, network = 3)
 
-  dat$el[[3]] <- tergmLite::simulate_ergm(p = dat$p[[3]],
-                                          el = dat$el[[3]],
-                                          coef = nwparam.i$coef.form)
+  rv_3 <- tergmLite::simulate_ergm(state = dat$p[[3]]$state,
+                                   coef = nwparam.i$coef.form,
+                                   control = dat$control$mcmc.control[[3]])
+  dat$el[[3]] <- rv_3$el
+
+
+  ## One-off MSM network
+  nwparam.i <- EpiModel::get_nwparam(dat, network = 6)
+
+  dat$attr$deg.tot.msm <- pmin(dat$attr$deg.main.msm + get_degree(dat$el[[5]]), 3)
+  dat$attr$deg.tot.c.msm <- ifelse(dat$attr$deg.tot.msm > 2, 2,  dat$attr$deg.tot.msm)
+
+  dat <- tergmLite::updateModelTermInputs(dat, network = 6)
+
+  rv_6 <- tergmLite::simulate_ergm(state = dat$p[[6]]$state,
+                                   coef = nwparam.i$coef.form,
+                                   control = dat$control$mcmc.control[[6]])
+  dat$el[[6]] <- rv_6$el
 
   if (dat$control$save.nwstats == TRUE) {
-    dat <- calc_nwstats(dat, at)
+    for (i in 1:6) {
+      nwL <- networkLite(dat$el[[i]], dat$attr)
+      if (dat$control$tergmLite.track.duration) {
+        nwL %n% "time" <- dat$p[[i]]$state$nw0 %n% "time"
+        nwL %n% "lasttoggle" <- dat$p[[i]]$state$nw0 %n% "lasttoggle"
+      }
+      dat$stats$nwstats[[i]] <- rbind(dat$stats$nwstats[[i]],
+                                      summary(dat$control$nwstats.formulas[[i]],
+                                              basis = nwL,
+                                              term.options = dat$control$mcmc.control[[i]]$term.options))
+    }
   }
+
 
   return(dat)
 }
@@ -94,17 +195,17 @@ update_plist <- function(dat, at, ptype) {
 
 calc_nwstats <- function(dat, at) {
 
-  for (nw in 1:3) {
+  for (nw in 1:6) {
     n <- attr(dat$el[[nw]], "n")
     edges <- nrow(dat$el[[nw]])
     meandeg <- round(edges * (2/n), 3)
     concurrent <- round(mean(get_degree(dat$el[[nw]]) > 1), 3)
     mat <- matrix(c(edges, meandeg, concurrent), ncol = 3, nrow = 1)
-    if (at == 1) {
+    if (at == 2) {
       dat$stats$nwstats[[nw]] <- mat
       colnames(dat$stats$nwstats[[nw]]) <- c("edges", "mdeg", "conc")
     }
-    if (at > 1) {
+    if (at > 2) {
       dat$stats$nwstats[[nw]] <- rbind(dat$stats$nwstats[[nw]], mat)
     }
   }
@@ -149,17 +250,29 @@ edges_correct_msm <- function(dat, at) {
   new.num <- sum(dat$attr$active == 1, na.rm = TRUE)
   adjust <- log(old.num) - log(new.num)
 
-  coef.form.m <- get_nwparam(dat, network = 1)$coef.form
-  coef.form.m[1] <- coef.form.m[1] + adjust
-  dat$nwparam[[1]]$coef.form <- coef.form.m
+  coef.form.m.het <- get_nwparam(dat, network = 1)$coef.form
+  coef.form.m.het[1] <- coef.form.m.het[1] + adjust
+  dat$nwparam[[1]]$coef.form <- coef.form.m.het
 
-  coef.form.p <- get_nwparam(dat, network = 2)$coef.form
-  coef.form.p[1] <- coef.form.p[1] + adjust
-  dat$nwparam[[2]]$coef.form <- coef.form.p
+  coef.form.m.msm <- get_nwparam(dat, network = 4)$coef.form
+  coef.form.m.msm[1] <- coef.form.m.msm[1] + adjust
+  dat$nwparam[[4]]$coef.form <- coef.form.m.msm
 
-  coef.form.i <- get_nwparam(dat, network = 3)$coef.form
-  coef.form.i[1] <- coef.form.i[1] + adjust
-  dat$nwparam[[3]]$coef.form <- coef.form.i
+  coef.form.p.het <- get_nwparam(dat, network = 2)$coef.form
+  coef.form.p.het[1] <- coef.form.p.het[1] + adjust
+  dat$nwparam[[2]]$coef.form <- coef.form.p.het
+
+  coef.form.p.msm <- get_nwparam(dat, network = 5)$coef.form
+  coef.form.p.msm[1] <- coef.form.p.msm[1] + adjust
+  dat$nwparam[[5]]$coef.form <- coef.form.p.msm
+
+  coef.form.i.het <- get_nwparam(dat, network = 3)$coef.form
+  coef.form.i.het[1] <- coef.form.i.het[1] + adjust
+  dat$nwparam[[3]]$coef.form <- coef.form.i.het
+
+  coef.form.i.msm <- get_nwparam(dat, network = 6)$coef.form
+  coef.form.i.msm[1] <- coef.form.i.msm[1] + adjust
+  dat$nwparam[[6]]$coef.form <- coef.form.i.msm
 
   return(dat)
 }
@@ -184,10 +297,11 @@ simnet_het <- function(dat, at) {
   nwparam <- get_nwparam(dat, network = 1)
 
   # Simulate edgelist
-  dat$el[[1]] <- tergmLite::simulate_network(p = dat$p[[1]],
-                                             el = dat$el[[1]],
-                                             coef.form = nwparam$coef.form,
-                                             coef.diss = nwparam$coef.diss$coef.adj)
+  rv_1 <- tergmLite::simulate_network(state = dat$p[[1]]$state,
+                                      coef = c(nwparam$coef.form, nwparam$coef.diss$coef.adj),
+                                      control = dat$control$mcmc.control[[1]])
+  dat$el[[1]] <- rv_1$el
+  dat$p[[1]]$state$el <- rv_1$state$el
 
   return(dat)
 }

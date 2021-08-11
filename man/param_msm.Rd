@@ -4,41 +4,119 @@
 \alias{param_msm}
 \title{Epidemic Model Parameters}
 \usage{
-param_msm(netstats, hiv.test.rate = c(0.01325, 0.0125, 0.0124),
-  hiv.test.late.prob = c(0.25, 0.25, 0.25), test.window.int = 21/7,
-  tt.part.supp = c(0.2, 0.2, 0.2), tt.full.supp = c(0.4, 0.4, 0.4),
-  tt.dur.supp = c(0.4, 0.4, 0.4), tx.init.prob = c(0.092, 0.092,
-  0.127), tx.halt.part.prob = c(0.0102, 0.0102, 0.0071),
-  tx.halt.full.rr = c(0.9, 0.9, 0.9), tx.halt.dur.rr = c(0.5, 0.5,
-  0.5), tx.reinit.part.prob = c(0.00066, 0.00066, 0.00291),
-  tx.reinit.full.rr = c(1, 1, 1), tx.reinit.dur.rr = c(1, 1, 1),
-  max.time.off.tx.full.int = 52 * 15, max.time.on.tx.part.int = 52 *
-  10, max.time.off.tx.part.int = 52 * 10, vl.acute.rise.int = 6.4,
-  vl.acute.peak = 6.886, vl.acute.fall.int = 6.4, vl.set.point = 4.5,
-  vl.aids.onset.int = 520, vl.aids.int = 104, vl.aids.peak = 7,
-  vl.full.supp = 1.5, vl.part.supp = 3.5, vl.tx.down.slope = 0.25,
-  vl.tx.aids.down.slope = 0.25, vl.tx.up.slope = 0.25,
-  aids.mr = 1/104, a.rate = 0.00052, arrival.age = 15,
-  URAI.prob = 0.008938, UIAI.prob = 0.003379, trans.scale = c(1, 1,
-  1), acute.rr = 6, circ.rr = 0.4, cond.eff = 0.95,
-  cond.fail = c(0.25, 0.25, 0.25), circ.prob = c(0.874, 0.874, 0.918),
-  epistats, acts.aids.vl = 5.75, acts.scale = 1, cond.scale = 1,
-  rgc.tprob = 0.35, ugc.tprob = 0.25, rct.tprob = 0.2,
-  uct.tprob = 0.16, rgc.sympt.prob = 0.16, ugc.sympt.prob = 0.8,
-  rct.sympt.prob = 0.14, uct.sympt.prob = 0.58, rgc.ntx.int = 16.8,
-  ugc.ntx.int = 16.8, gc.tx.int = 1.4, rct.ntx.int = 32,
-  uct.ntx.int = 32, ct.tx.int = 1.4, gc.sympt.prob.tx = c(0.95, 0.95,
-  0.95), ct.sympt.prob.tx = c(0.9, 0.9, 0.9),
-  gc.asympt.prob.tx = c(0.15, 0.15, 0.15), ct.asympt.prob.tx = c(0.15,
-  0.15, 0.15), sti.cond.eff = 0.9, sti.cond.fail = c(0.2, 0.2, 0.2),
-  hiv.rgc.rr = 2.78, hiv.ugc.rr = 1.73, hiv.rct.rr = 2.78,
-  hiv.uct.rr = 1.73, hiv.dual.rr = 0.2, riskh.start = Inf,
-  prep.start = Inf, prep.start.prob = 0.2, prep.adhr.dist = c(0.089,
-  0.127, 0.784), prep.adhr.hr = c(0.69, 0.19, 0.01),
-  prep.discont.rate = 1 - (2^(-1/(224.4237/7))), prep.tst.int = 90/7,
-  prep.risk.int = 182/7, prep.sti.screen.int = 182/7,
-  prep.sti.prob.tx = 1, prep.risk.reassess.method = "year",
-  prep.require.lnt = TRUE, ...)
+param_msm(
+  netstats,
+  hiv.test.rate = c(0.018, 0.022, 0.012, 0.0063, 0.0041, 0.0031, 0.0063, 0.0041,
+    0.0031),
+  hiv.test.late.prob = c(0.204, 0.204, 0.204, 0.204, 0.204, 0.204, 0.204, 0.204, 0.204),
+  test.window.int = 21/7,
+  tt.part.supp = c(0.3591, 0.3844, 0.319, 0.4306, 0.4531, 0.395, 0.3873, 0.4115, 0.349),
+  tt.full.supp = c(0.6409, 0.6156, 0.681, 0.5694, 0.5469, 0.605, 0.6127, 0.5885, 0.651),
+  tt.dur.supp = c(0, 0, 0, 0, 0, 0, 0, 0, 0),
+  tx.init.prob = c(0.315, 0.367, 0.35, 0.301, 0.347, 0.332, 0.3075, 0.357, 0.341),
+  tx.halt.part.prob = c(0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01),
+  tx.halt.full.rr = c(0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9),
+  tx.halt.dur.rr = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+  tx.reinit.part.prob = c(0.00066, 0.00066, 0.00291, 0.00066, 0.00066, 0.00291,
+    0.00066, 0.00066, 0.00291),
+  tx.reinit.full.rr = c(1, 1, 1, 1, 1, 1, 1, 1, 1),
+  tx.reinit.dur.rr = c(1, 1, 1, 1, 1, 1, 1, 1, 1),
+  fixed.ART = FALSE,
+  fixed.ART.time = c(1, 4),
+  dem.cat.ART.fixed = c(0, 0, 0, 0, 0, 0, 0, 0, 0),
+  dem.cat.ART.fixed.prop = c(0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95),
+  max.time.off.tx.full.int = 52 * 15,
+  max.time.on.tx.part.int = 52 * 10,
+  max.time.off.tx.part.int = 52 * 10,
+  vl.acute.rise.int = 1.7,
+  vl.acute.peak = 6.76,
+  vl.acute.fall.int = 2.86,
+  vl.set.point = 4,
+  vl.aids.onset.int = 471,
+  vl.aids.int = 40,
+  vl.aids.peak = 7,
+  vl.full.supp = 1.5,
+  vl.part.supp = 3.5,
+  vl.tx.down.slope = 0.25,
+  vl.tx.aids.down.slope = 0.25,
+  vl.tx.up.slope = 0.25,
+  aids.mr = 1/40,
+  HIV.south = 0.00517,
+  HIV.msm = c(0.278, 0.158, 0.196),
+  HIV.het.m = c(0.064, 0.036, 0.045),
+  HIV.het.f = c(0.098, 0.056, 0.069),
+  a.rate = 0.00052,
+  arrival.age = 15,
+  bisex = c(0.264, 0.124, 0.109),
+  URAI.prob = 0.0138,
+  UIAI.prob = 0.0011,
+  URVI.prob = 8e-04,
+  UIVI.prob = 4e-04,
+  trans.by.act.type.scale = c(2.1, 2.1, 3.5, 3.5),
+  trans.scale = c(1.6, 1.3, 1.1, 1.4, 1.2, 1.2, 1.4, 1.2, 1.2),
+  acute.rr = 6,
+  circ.rr = 0.4,
+  cond.eff = 0.95,
+  cond.fail = c(0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25),
+  circ.prob = c(0.874, 0.874, 0.918),
+  epistats,
+  acts.aids.vl = 5.75,
+  acts.scale.msm = 1,
+  cond.scale.msm = 1,
+  acts.scale.het = 1,
+  cond.scale.het = 1,
+  rgc.tprob = 0.35,
+  ugc.tprob = 0.25,
+  rct.tprob = 0.2,
+  uct.tprob = 0.16,
+  rgc.sympt.prob = 0.16,
+  ugc.sympt.prob = 0.8,
+  rct.sympt.prob = 0.14,
+  uct.sympt.prob = 0.58,
+  rgc.ntx.int = 16.8,
+  ugc.ntx.int = 16.8,
+  gc.tx.int = 1.4,
+  rct.ntx.int = 32,
+  uct.ntx.int = 32,
+  ct.tx.int = 1.4,
+  gc.sympt.prob.tx = c(0.95, 0.95, 0.95),
+  ct.sympt.prob.tx = c(0.9, 0.9, 0.9),
+  gc.asympt.prob.tx = c(0.15, 0.15, 0.15),
+  ct.asympt.prob.tx = c(0.15, 0.15, 0.15),
+  sti.cond.eff = 0.9,
+  sti.cond.fail = c(0.2, 0.2, 0.2),
+  hiv.rgc.rr = 2.78,
+  hiv.ugc.rr = 1.73,
+  hiv.rct.rr = 2.78,
+  hiv.uct.rr = 1.73,
+  hiv.dual.rr = 0.2,
+  riskh.start = Inf,
+  prep.start = Inf,
+  prep.base.cov = c(51.728, 96.728, 1202.744, 0.074, 0.136, 1.69, 0.074, 0.136, 1.69),
+  prep.adhr.dist.msm = c(0.089, 0.127, 0.784),
+  prep.adhr.dist.het = c(0.21, 0.13, 0.66),
+  prep.adhr.hr = c(0.69, 0.19, 0.01),
+  prep.discont.rate = c(0.01488, 0.01162, 0.00596, 0.07, 0.07, 0.07, 0.025, 0.025,
+    0.025),
+  prep.tst.int = 90/7,
+  prep.risk.int = 182/7,
+  prep.sti.screen.int = 182/7,
+  prep.sti.prob.tx = 1,
+  prep.risk.reassess.method = "year",
+  prep.require.lnt = FALSE,
+  prep.fixed = FALSE,
+  fixed.prep.time = c(1, 4),
+  dem.cat.prep.fixed = c(1, 1, 0, 1, 0, 1, 1, 1, 0),
+  dem.cat.prep.fixed.prop = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+  cure.time = c(520, 2599),
+  prev.targ = round(c(0.278, 0.158, 0.196, 0.064, 0.036, 0.045, 0.098, 0.056, 0.069) *
+    (5e+05 * 0.00517), 0),
+  inc.targ.south = 18.4,
+  inc.targ.sex = c(22.1, 4.8),
+  inc.targ.race = c(45.4, 22.4, 5.2),
+  inc.targ.prop.msm = 0.71,
+  ...
+)
 }
 \arguments{
 \item{netstats}{Target statistics and related network initialization data from
@@ -164,10 +242,6 @@ will be circumcised (vector of length 3).}
 
 \item{acts.aids.vl}{Viral load level after which sexual act rate goes to zero.}
 
-\item{acts.scale}{Scalar for main/casual act rate for model calibration.}
-
-\item{cond.scale}{Scalar for condom use probability for model calibration.}
-
 \item{rgc.tprob}{Probability of rectal gonorrhea infection per act.}
 
 \item{ugc.tprob}{Probability of urethral gonorrhea infection per act.}
@@ -233,11 +307,6 @@ given dual infection with both gonorrhea and chlamydia.}
 
 \item{prep.start}{Time step at which the PrEP intervention should start.}
 
-\item{prep.start.prob}{Probability of starting PrEP given current indications.}
-
-\item{prep.adhr.dist}{Proportion of men who are low, medium, and high
-adherent to PrEP.}
-
 \item{prep.adhr.hr}{The hazard ratio for infection per act associated with each
 level of adherence (from Grant).}
 
@@ -262,6 +331,15 @@ of active PrEP users, either \code{"none"} for no reassessment,
 equal to the last negative test.}
 
 \item{...}{Additional arguments passed to the function.}
+
+\item{acts.scale}{Scalar for main/casual act rate for model calibration.}
+
+\item{cond.scale}{Scalar for condom use probability for model calibration.}
+
+\item{prep.start.prob}{Probability of starting PrEP given current indications.}
+
+\item{prep.adhr.dist}{Proportion of men who are low, medium, and high
+adherent to PrEP.}
 }
 \value{
 A list object of class \code{param_msm}, which can be passed to

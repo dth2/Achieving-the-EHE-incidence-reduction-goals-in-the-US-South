@@ -2,20 +2,176 @@
 % Please edit documentation in R/params.R
 \name{control_msm}
 \alias{control_msm}
+\alias{control.net}
 \title{Epidemic Model Control Settings}
 \usage{
-control_msm(simno = 1, nsims = 1, ncores = 1, nsteps = 100,
-  start = 1, initialize.FUN = initialize_msm, aging.FUN = aging_msm,
-  departure.FUN = departure_msm, arrival.FUN = arrival_msm,
-  hivtest.FUN = hivtest_msm, hivtx.FUN = hivtx_msm,
-  hivprogress.FUN = hivprogress_msm, hivvl.FUN = hivvl_msm,
-  resim_nets.FUN = simnet_msm, acts.FUN = acts_msm,
-  condoms.FUN = condoms_msm, position.FUN = position_msm,
-  prep.FUN = prep_msm, hivtrans.FUN = hivtrans_msm,
-  stitrans.FUN = stitrans_msm, stirecov.FUN = stirecov_msm,
-  stitx.FUN = stitx_msm, prev.FUN = prevalence_msm,
-  verbose.FUN = verbose.net, save.nwstats = FALSE,
-  save.clin.hist = FALSE, truncate.plist = TRUE, verbose = TRUE, ...)
+control_msm(
+  simno = 1,
+  nsims = 1,
+  ncores = 1,
+  nsteps = 100,
+  start = 1,
+  initialize.FUN = initialize_msm,
+  aging.FUN = aging_msm,
+  departure.FUN = departure_msm,
+  arrival.FUN = arrival_msm,
+  hivtest.FUN = hivtest_msm,
+  hivtx.FUN = hivtx_msm,
+  hivprogress.FUN = hivprogress_msm,
+  hivvl.FUN = hivvl_msm,
+  resim_nets.FUN = simnet_msm,
+  cure.FUN = cure_prev,
+  acts.FUN = acts_msm,
+  condoms.FUN = condoms_msm,
+  position.FUN = position_msm,
+  prep.FUN = prep_msm,
+  hivtrans.FUN = hivtrans_msm,
+  prev.FUN = prevalence_msm,
+  verbose.FUN = verbose.net,
+  save.nwstats = TRUE,
+  save.clin.hist = FALSE,
+  truncate.plist = TRUE,
+  verbose = TRUE,
+  nwstats.formula.1 = ~edges + nodematch("age.grp", diff = TRUE) +
+    nodefactor("age.grp", levels = -1) + absdiff(~age + 2 * (sex == 2)) +
+    nodematch("race", diff = TRUE) + nodefactor("race", levels = -1) +
+    nodefactor("deg.casl.c.het", levels = -1) + nodefactor("age15", levels = -1) +
+    concurrent + degrange(from = 3) + offset(nodematch("sex", diff = FALSE)) +
+    offset(nodefactor("het", levels = -2)),
+  nwstats.formula.2 = ~edges + nodematch("age.grp", diff = TRUE) +
+    nodefactor("age.grp", levels = -6) + absdiff(~age + 2 * (sex == 2)) +
+    nodefactor("deg.main.c.het", levels = -1) + concurrent + degrange(from = 4) +
+    nodematch("race", diff = TRUE) + nodefactor("race", levels = -1) +
+    nodefactor("age15", levels = -1) + offset(nodematch("sex", diff = FALSE)) +
+    offset(nodefactor("het", levels = -2)),
+  nwstats.formula.3 = ~edges + nodematch("age.grp", diff = FALSE) +
+    nodefactor("age.grp", levels = c(-5, -6)) + absdiff(~age + 2 * (sex == 2)) +
+    nodefactor("risk.grp", levels = 5) + nodefactor("deg.tot.c.het", levels = -1) +
+    nodematch("race", diff = TRUE) + nodefactor("race", levels = -3) +
+    offset(nodematch("sex", diff = FALSE)) + offset(nodefactor("het", levels = -2)),
+  nwstats.formula.4 = ~edges + nodematch("age.grp", diff = TRUE) +
+    nodefactor("age.grp", levels = -1) + absdiff("sqrt.age") + nodematch("race", diff =
+    TRUE) + nodefactor("race", levels = -1) + nodefactor("deg.casl.c.msm", levels = -1) +
+    nodefactor("age15", levels = -1) + concurrent + degrange(from = 3) +
+    nodematch("role.class", diff = TRUE, levels = 1:2) + offset(nodefactor("msm", levels
+    = -2)),
+  nwstats.formula.5 = ~edges + nodematch("age.grp", diff = TRUE) +
+    nodefactor("age.grp", levels = c(-5, -6)) + absdiff("sqrt.age") +
+    nodefactor("deg.main.c.msm", levels = -1) + concurrent + degrange(from = 4) +
+    nodematch("race", diff = TRUE) + nodefactor("race", levels = -3) +
+    nodefactor("age15", levels = -1) + nodematch("role.class", diff = TRUE, levels = 1:2)
+    + offset(nodefactor("msm", levels = -2)),
+  nwstats.formula.6 = ~edges + nodematch("age.grp", diff = FALSE) +
+    nodefactor("age.grp", levels = -1) + absdiff("sqrt.age") + nodefactor("risk.grp",
+    levels = -5) + nodefactor("deg.tot.c.msm", levels = -1) + nodematch("race", diff =
+    TRUE) + nodefactor("race", levels = -1) + nodematch("role.class", diff = TRUE, levels
+    = 1:2) + offset(nodefactor("msm", levels = -2)),
+  mcmc.control.tergm.1 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
+    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+  mcmc.control.tergm.2 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
+    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+  mcmc.control.ergm.3 = control.simulate.formula(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, het), empirical = TRUE) + sparse, MCMC.burnin = 3e+06,
+    MCMC.interval = 3e+05),
+  mcmc.control.tergm.4 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
+    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+  mcmc.control.tergm.5 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
+    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+  mcmc.control.ergm.6 = control.simulate.formula(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, msm), empirical = TRUE) + sparse, MCMC.burnin = 3200000,
+    MCMC.interval = 420000),
+  tergmLite.track.duration = TRUE,
+  tergmLite = FALSE,
+  ...
+)
+
+control.net(
+  simno = 1,
+  nsims = 1,
+  ncores = 1,
+  nsteps = 100,
+  start = 1,
+  initialize.FUN = initialize_msm,
+  aging.FUN = aging_msm,
+  departure.FUN = departure_msm,
+  arrival.FUN = arrival_msm,
+  hivtest.FUN = hivtest_msm,
+  hivtx.FUN = hivtx_msm,
+  hivprogress.FUN = hivprogress_msm,
+  hivvl.FUN = hivvl_msm,
+  resim_nets.FUN = simnet_msm,
+  cure.FUN = cure_prev,
+  acts.FUN = acts_msm,
+  condoms.FUN = condoms_msm,
+  position.FUN = position_msm,
+  prep.FUN = prep_msm,
+  hivtrans.FUN = hivtrans_msm,
+  prev.FUN = prevalence_msm,
+  verbose.FUN = verbose.net,
+  save.nwstats = TRUE,
+  save.clin.hist = FALSE,
+  truncate.plist = TRUE,
+  verbose = TRUE,
+  nwstats.formula.1 = ~edges + nodematch("age.grp", diff = TRUE) +
+    nodefactor("age.grp", levels = -1) + absdiff(~age + 2 * (sex == 2)) +
+    nodematch("race", diff = TRUE) + nodefactor("race", levels = -1) +
+    nodefactor("deg.casl.c.het", levels = -1) + nodefactor("age15", levels = -1) +
+    concurrent + degrange(from = 3) + offset(nodematch("sex", diff = FALSE)) +
+    offset(nodefactor("het", levels = -2)),
+  nwstats.formula.2 = ~edges + nodematch("age.grp", diff = TRUE) +
+    nodefactor("age.grp", levels = -6) + absdiff(~age + 2 * (sex == 2)) +
+    nodefactor("deg.main.c.het", levels = -1) + concurrent + degrange(from = 4) +
+    nodematch("race", diff = TRUE) + nodefactor("race", levels = -1) +
+    nodefactor("age15", levels = -1) + offset(nodematch("sex", diff = FALSE)) +
+    offset(nodefactor("het", levels = -2)),
+  nwstats.formula.3 = ~edges + nodematch("age.grp", diff = FALSE) +
+    nodefactor("age.grp", levels = c(-5, -6)) + absdiff(~age + 2 * (sex == 2)) +
+    nodefactor("risk.grp", levels = 5) + nodefactor("deg.tot.c.het", levels = -1) +
+    nodematch("race", diff = TRUE) + nodefactor("race", levels = -3) +
+    offset(nodematch("sex", diff = FALSE)) + offset(nodefactor("het", levels = -2)),
+  nwstats.formula.4 = ~edges + nodematch("age.grp", diff = TRUE) +
+    nodefactor("age.grp", levels = -1) + absdiff("sqrt.age") + nodematch("race", diff =
+    TRUE) + nodefactor("race", levels = -1) + nodefactor("deg.casl.c.msm", levels = -1) +
+    nodefactor("age15", levels = -1) + concurrent + degrange(from = 3) +
+    nodematch("role.class", diff = TRUE, levels = 1:2) + offset(nodefactor("msm", levels
+    = -2)),
+  nwstats.formula.5 = ~edges + nodematch("age.grp", diff = TRUE) +
+    nodefactor("age.grp", levels = c(-5, -6)) + absdiff("sqrt.age") +
+    nodefactor("deg.main.c.msm", levels = -1) + concurrent + degrange(from = 4) +
+    nodematch("race", diff = TRUE) + nodefactor("race", levels = -3) +
+    nodefactor("age15", levels = -1) + nodematch("role.class", diff = TRUE, levels = 1:2)
+    + offset(nodefactor("msm", levels = -2)),
+  nwstats.formula.6 = ~edges + nodematch("age.grp", diff = FALSE) +
+    nodefactor("age.grp", levels = -1) + absdiff("sqrt.age") + nodefactor("risk.grp",
+    levels = -5) + nodefactor("deg.tot.c.msm", levels = -1) + nodematch("race", diff =
+    TRUE) + nodefactor("race", levels = -1) + nodematch("role.class", diff = TRUE, levels
+    = 1:2) + offset(nodefactor("msm", levels = -2)),
+  mcmc.control.tergm.1 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
+    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+  mcmc.control.tergm.2 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
+    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+  mcmc.control.ergm.3 = control.simulate.formula(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, het), empirical = TRUE) + sparse, MCMC.burnin = 3e+06,
+    MCMC.interval = 3e+05),
+  mcmc.control.tergm.4 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
+    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+  mcmc.control.tergm.5 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
+    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+  mcmc.control.ergm.6 = control.simulate.formula(MCMC.prop = ~strat(attr =
+    ~paste(age.grp, race, msm), empirical = TRUE) + sparse, MCMC.burnin = 3200000,
+    MCMC.interval = 420000),
+  tergmLite.track.duration = TRUE,
+  tergmLite = FALSE,
+  ...
+)
 }
 \arguments{
 \item{simno}{Unique ID for the simulation run, used for file naming purposes
@@ -65,14 +221,6 @@ partnerships.}
 \item{hivtrans.FUN}{Module function to stochastically simulate HIV transmission
 over acts given individual and dyadic attributes.}
 
-\item{stitrans.FUN}{Module function to simulate GC/CT transmission over current
-edgelist.}
-
-\item{stirecov.FUN}{Module function to simulate recovery from GC/CT, heterogeneous
-by disease, site, symptoms, and treatment status.}
-
-\item{stitx.FUN}{Module function to simulate treatment of GC/CT.}
-
 \item{prev.FUN}{Module function to calculate prevalence summary statistics.}
 
 \item{verbose.FUN}{Module function to print model progress to the console or
@@ -89,7 +237,32 @@ active partnerships.}
 \item{verbose}{If \code{TRUE}, print out simulation progress to the console
 if in interactive mode or text files if in batch mode.}
 
+\item{nwstats.formula.1, nwstats.formula.2, nwstats.formula.3}{Monitoring
+formulas for networks 1, 2, and 3.}
+
+\item{mcmc.control.tergm.1, mcmc.control.tergm.2, mcmc.control.ergm.3}{Control
+arguments for network simulation in \code{tergmLite}.}
+
+\item{tergmLite.track.duration}{logical; should we track durational information
+(\code{time} and \code{lasttoggle}) for \code{tergm} models in
+\code{tergmLite} simulation?  If \code{TRUE}, the \code{time} and
+\code{lasttoggle} values are initialized from the network attributes
+of the networks passed to \code{init_tergmLite}, with \code{time}
+defaulting to \code{0} and \code{lasttoggle} defaulting to all
+\code{lasttoggle} times unspecified (effectively \code{-INT_MAX/2}).}
+
+\item{tergmLite}{Logical indicating usage of either \code{tergm} (\code{tergmLite = FALSE}),
+or \code{tergmLite} (\code{tergmLite = TRUE}). Default of \code{FALSE}.}
+
 \item{...}{Additional arguments passed to the function.}
+
+\item{stitrans.FUN}{Module function to simulate GC/CT transmission over current
+edgelist.}
+
+\item{stirecov.FUN}{Module function to simulate recovery from GC/CT, heterogeneous
+by disease, site, symptoms, and treatment status.}
+
+\item{stitx.FUN}{Module function to simulate treatment of GC/CT.}
 }
 \value{
 A list object of class \code{control_msm}, which can be passed to the

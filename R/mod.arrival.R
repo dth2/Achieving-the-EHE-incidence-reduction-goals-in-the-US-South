@@ -25,12 +25,17 @@ arrival_msm <- function(dat, at){
   ## Variables
 
   # Parameters
-  a.rate <- dat$param$a.rate
+  #a.rate <- dat$param$a.rate
 
   ## Process
-  num <- dat$epi$num[1]
+  #num <- dat$epi$num[1]
 
-  nNew <- rpois(1, a.rate * num)
+  #nNew <- rpois(1, a.rate * num)
+
+
+  nNew <- max(0,dat$epi$dep.All[at])
+
+
 
   ## Update Attr
   if (nNew > 0) {
@@ -39,7 +44,7 @@ arrival_msm <- function(dat, at){
 
   # Update Networks
   if (nNew > 0) {
-    for (i in 1:3) {
+    for (i in 1:6) {
       dat$el[[i]] <- tergmLite::add_vertices(dat$el[[i]], nNew)
     }
   }
@@ -67,15 +72,32 @@ setNewAttr_msm <- function(dat, at, nNew) {
 
   dat$attr$arrival.time[newIds] <- rep(at, nNew)
 
-  race.dist <- prop.table(table(dat$param$netstats$attr$race))
+  dem.dist <- dat$param$dem.dist
+  dem.cat <- sample(sort(unique(na.omit(dat$attr$dem.cat))), nNew, TRUE, dem.dist)
+  dat$attr$dem.cat[newIds] <- dem.cat
 
-  race <- sample(sort(unique(dat$attr$race)), nNew, TRUE, race.dist)
-  dat$attr$race[newIds] <- race
+  dat$attr$msm[newIds]  <- ifelse(dat$attr$dem.cat[newIds] <= 3,1,0)
+  dat$attr$het[newIds]  <- ifelse(dat$attr$dem.cat[newIds] > 3,1,0)
+  dat$attr$race[newIds]  <- ifelse(dat$attr$dem.cat[newIds] == 1 | dat$attr$dem.cat[newIds] == 4 | dat$attr$dem.cat[newIds] == 7,1,dat$attr$race[newIds])
+  dat$attr$race[newIds]  <- ifelse(dat$attr$dem.cat[newIds] == 2 | dat$attr$dem.cat[newIds] == 5 | dat$attr$dem.cat[newIds] == 8,2,dat$attr$race[newIds])
+  dat$attr$race[newIds]  <- ifelse(dat$attr$dem.cat[newIds] == 3 | dat$attr$dem.cat[newIds] == 6 | dat$attr$dem.cat[newIds] == 9,3,dat$attr$race[newIds])
+  dat$attr$sex[newIds]  <- ifelse(dat$attr$dem.cat[newIds] <= 6,1,2)
+
+
+
+
+##Assign bisexual fractions fractions race specific
+   for(i in 1:3){
+    bi <-which(dat$attr$msm[newIds] == 1 & dat$attr$race[newIds] == i)
+    bi <-sample(bi,round(length(bi)*dat$param$bisex[i]),replace=FALSE)
+    bi<-newIds[bi]
+    dat$attr$het[bi]<-1
+  }
 
   dat$attr$age[newIds] <- rep(dat$param$arrival.age, nNew)
-  age.breaks <- dat$param$netstats$demog$age.breaks
-  attr_age.grp <- cut(dat$attr$age[newIds], age.breaks, labels = FALSE)
-  dat$attr$age.grp[newIds] <- attr_age.grp
+  dat$attr$sqrt.age[newIds] <- rep(sqrt(dat$param$arrival.age), nNew)
+  dat$attr$age.grp[newIds] <- 1
+  dat$attr$age15[newIds] <- 1
 
   # Disease status and related
   dat$attr$status[newIds] <- rep(0, nNew)
@@ -87,14 +109,14 @@ setNewAttr_msm <- function(dat, at, nNew) {
 
   dat$attr$count.trans[newIds] <- 0
 
-  rates <- dat$param$hiv.test.late.prob[race]
+  rates <- dat$param$hiv.test.late.prob[dem.cat]
   dat$attr$late.tester[newIds] <- rbinom(length(rates), 1, rates)
 
-  races <- sort(unique(dat$attr$race[newIds]))
+  dem.cat <- sort(unique(dat$attr$dem.cat[newIds]))
   tt.traj <- rep(NA, nNew)
-  for (i in races) {
-    ids.race <- which(dat$attr$race[newIds] == i)
-    tt.traj[ids.race] <- sample(1:3, length(ids.race), TRUE,
+  for (i in dem.cat) {
+    ids.dem.cat <- which(dat$attr$dem.cat[newIds] == i)
+    tt.traj[ids.dem.cat] <- sample(1:3, length(ids.dem.cat), TRUE,
                                 c(dat$param$tt.part.supp[i],
                                   dat$param$tt.full.supp[i],
                                   dat$param$tt.dur.supp[i]))
@@ -102,13 +124,16 @@ setNewAttr_msm <- function(dat, at, nNew) {
   }
   dat$attr$tt.traj[newIds] <- tt.traj
 
+
   # Circumcision
-  circ <- rep(NA, nNew)
+  circ <- rep(0, nNew)
+  races <- sort(unique(dat$attr$race))
   for (i in races) {
-    ids.race <- which(dat$attr$race[newIds] == i)
+    ids.race <- which(dat$attr$race[newIds] == i & dat$attr$sex[newIds] == 1)
     circ[ids.race] <- rbinom(length(ids.race), 1, dat$param$circ.prob[i])
   }
   dat$attr$circ[newIds] <- circ
+
 
   # Role
   ns <- dat$param$netstats$attr
@@ -116,15 +141,17 @@ setNewAttr_msm <- function(dat, at, nNew) {
   for (i in races) {
     ids.race <- which(dat$attr$race[newIds] == i)
     rc.probs <- prop.table(table(ns$role.class[ns$race == i]))
-    role.class[ids.race] <- sample(0:2, length(ids.race), TRUE, rc.probs)
+    role.class[ids.race] <- sample(1:3, length(ids.race), TRUE, rc.probs)
   }
   dat$attr$role.class[newIds] <- role.class
+  dat$attr$role.class[dat$attr$sex == 2] <- 2
+  dat$attr$role.class[dat$attr$sex == 1 & dat$attr$msm == 0] <- 1
 
   ins.quot <- rep(NA, nNew)
-  ins.quot[dat$attr$role.class[newIds] == 0]  <- 1
-  ins.quot[dat$attr$role.class[newIds] == 1]  <- 0
-  ins.quot[dat$attr$role.class[newIds] == 2]  <-
-                                  runif(sum(dat$attr$role.class[newIds] == 2))
+  ins.quot[dat$attr$role.class[newIds] == 1]  <- 1
+  ins.quot[dat$attr$role.class[newIds] == 2]  <- 0
+  ins.quot[dat$attr$role.class[newIds] == 3]  <-
+                                  runif(sum(dat$attr$role.class[newIds] == 3))
   dat$attr$ins.quot[newIds] <- ins.quot
 
   # Degree

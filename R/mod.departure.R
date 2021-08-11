@@ -63,8 +63,12 @@ departure_msm <- function(dat, at) {
 
   if (length(idsDepAll) > 0) {
     dat$attr$active[idsDepAll] <- 0
-    for (i in 1:3) {
+    for (i in 1:6) {
       dat$el[[i]] <- tergmLite::delete_vertices(dat$el[[i]], idsDepAll)
+
+      if(dat$control$tergmLite.track.duration && i <= 2) {
+        dat$p[[i]]$state$nw0 %n% "lasttoggle" <- tergmLite::delete_vertices(dat$p[[i]]$state$nw0 %n% "lasttoggle", idsDepAll)
+      }
     }
     dat$attr <- deleteAttr(dat$attr, idsDepAll)
     if (unique(sapply(dat$attr, length)) != attributes(dat$el[[1]])$n) {
@@ -86,6 +90,7 @@ departure_msm <- function(dat, at) {
   dat$epi$dep.AIDS[at] <- length(idsDepAIDS)
   dat$epi$dep.HIV[at] <- length(depHIV)
   dat$epi$dep.HIV.old[at] <- length(depHIV.old)
+  dat$epi$dep.All[at] <- length(idsDepAll)
 
   return(dat)
 }
@@ -107,8 +112,8 @@ deaths_het <- function(dat, at) {
 
   ## Eligible are: active uninf, pre-death infected, unhealthy old
   idsEligSus <- which((is.na(cd4Count) |
-                       cd4Count > di.cd4.aids |
-                       (cd4Count <= di.cd4.aids & age > ds.exit.age)))
+                         cd4Count > di.cd4.aids |
+                         (cd4Count <= di.cd4.aids & age > ds.exit.age)))
   nEligSus <- length(idsEligSus)
 
   # Set age-sex specific rates

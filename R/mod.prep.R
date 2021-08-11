@@ -12,6 +12,7 @@
 #'
 prep_msm <- function(dat, at) {
 
+
   # Function Selection ------------------------------------------------------
 
   if (at >= dat$param$riskh.start) {
@@ -24,7 +25,6 @@ prep_msm <- function(dat, at) {
     return(dat)
   }
 
-
   # Attributes --------------------------------------------------------------
 
   # Core Attributes
@@ -32,6 +32,8 @@ prep_msm <- function(dat, at) {
   status <- dat$attr$status
   diag.status <- dat$attr$diag.status
   lnt <- dat$attr$last.neg.test
+  dem.cat <- dat$attr$dem.cat
+  msm <- dat$attr$msm
 
   # PrEP Attributes
   prepElig <- dat$attr$prepElig
@@ -45,18 +47,41 @@ prep_msm <- function(dat, at) {
   # Parameters --------------------------------------------------------------
 
   prep.start.prob <- dat$param$prep.start.prob
-  prep.adhr.dist <- dat$param$prep.adhr.dist
+  prep.adhr.dist.msm <- dat$param$prep.adhr.dist.msm
+  prep.adhr.dist.het <- dat$param$prep.adhr.dist.het
   prep.require.lnt <- dat$param$prep.require.lnt
   prep.risk.reassess.method <- dat$param$prep.risk.reassess.method
   prep.discont.rate <- dat$param$prep.discont.rate
 
+  prep.base.cov <- dat$param$prep.base.cov
+  dem.cat.prep.fixed <- dat$param$dem.cat.prep.fixed
+  dem.cat.prep.fixed.prop <- dat$param$dem.cat.prep.fixed.prop
+
+#  prep.start.prob = 0.2,
+#  prep.adhr.dist = c(0.089, 0.127, 0.784),
+#  prep.adhr.hr = c(0.69, 0.19, 0.01),
+#  prep.discont.rate = 1 - (2^(-1/(224.4237/7))),
+#  prep.tst.int = 90/7,
+#  prep.risk.int = 182/7,
+#  prep.sti.screen.int = 182/7,
+#  prep.sti.prob.tx = 1,
+#  prep.risk.reassess.method = "year",
+#  prep.fixed = TRUE,
+  #after prep.time 1 selection is from ART naive to fix the coverage
+  #after prep.time 2 selection is from ART experienced to fix the coverage
+#  fixed.prep.time = c(1,4),
+#  dem.cat.prep.fixed = c(0,0,0,0,0,0,1,1,0),
+#  dem.cat.prep.fixed.prop  = c(.95,.95,.95,.95,.95,.95,.95,.95,.95),
+
 
   # Indications -------------------------------------------------------------
 
-  ind1 <- dat$attr$prep.ind.uai.mono
+  ind1 <- dat$attr$prep.ind.ui.mono
   # ind2 <- dat$attr$prep.ind.uai.nmain
-  ind2 <- dat$attr$prep.ind.uai.conc
+  ind2 <- dat$attr$prep.ind.ui.conc
   ind3 <- dat$attr$prep.ind.sti
+
+
 
   twind <- at - dat$param$prep.risk.int
 
@@ -99,9 +124,14 @@ prep_msm <- function(dat, at) {
   }
 
   # Random discontinuation
-  idsEligStpRand <- which(active == 1 & prepStat == 1)
-  vecStpRand <- rbinom(length(idsEligStpRand), 1, prep.discont.rate)
-  idsStpRand <- idsEligStpRand[which(vecStpRand == 1)]
+  #Make this dem.group specific
+  idsStpRand <- NULL
+  for(i in 1:9){
+  idsEligStpRand <- which(active == 1 & prepStat == 1 & dem.cat == i)
+  vecStpRand <- rbinom(length(idsEligStpRand), 1, prep.discont.rate[i])
+  idsStpRand.temp <- idsEligStpRand[which(vecStpRand == 1)]
+  idsStpRand <- c(idsStpRand, idsStpRand.temp)
+  }
 
   # Diagnosis
   idsStpDx <- which(active == 1 & prepStat == 1 & diag.status == 1)
@@ -133,8 +163,62 @@ prep_msm <- function(dat, at) {
   idsEligStart <- intersect(idsIndic, idsEligStart)
   prepElig[idsEligStart] <- 1
 
-  vecStart <- rbinom(length(idsEligStart), 1, prep.start.prob)
-  idsStart <- idsEligStart[which(vecStart == 1)]
+
+  #Baseline
+  idsStart <-NULL
+
+    for(i in 1:9){
+      #prep.base.cov
+      #get ids.ELIG.start with demcat i
+      dem.list<- dem.cat[idsEligStart]
+      cov <- prep.base.cov[i]
+
+      if(i < 4){
+      count <- (sum(dat$attr$msm==1)/100000) * cov
+      on.prep <- which(dat$attr$dem.cat==i & dat$attr$prepStat == 1)
+      count <- count - length(on.prep)
+      }
+
+      if(i > 3){
+        count <- (sum(dat$attr$msm==0)/100000) * cov
+        on.prep <- which(dat$attr$dem.cat==i & dat$attr$prepStat == 1)
+        count <- count - length(on.prep)
+      }
+
+      if (count > 0){
+      idsStart.temp <- sample(idsEligStart[dem.list==i],count,FALSE)
+      idsStart <- c(idsStart,idsStart.temp)
+      }
+
+}
+  ## IF PREP COVERAGE IS GOING TO BE FIXED FOR EFFECT SIZE ANALYSIS
+
+  if(dat$param$prep.fixed==TRUE){
+
+for(i in 1:9){
+  if(dem.cat.prep.fixed[i] == 1){
+    dem.list<- dem.cat[idsEligStart]
+    cov <- dem.cat.prep.fixed.prop[i]
+
+    count <- sum(dem.cat==i) * cov
+    #subtract of those on PrEP
+    on.prep <- which(dat$attr$dem.cat==i & dat$attr$prepStat == 1)
+    count <- count - length(on.prep)
+
+    idsStart.temp <- NULL
+    if(count > 0){
+    idsStart.temp <- sample(idsEligStart[dem.cat==i],count,FALSE)
+    }
+
+    if(count > 0){
+    idsStart <- c(idsStart,idsStart.temp)
+    idsStart <- unique(idsStart)
+    }
+
+}
+    }
+  }
+
 
   # Set attributes for starters
   if (length(idsStart) > 0) {
@@ -143,10 +227,21 @@ prep_msm <- function(dat, at) {
     prepLastRisk[idsStart] <- at
 
     # PrEP adherence class
-    needPC <- which(is.na(prepClass[idsStart]))
+    # Split out by MSM/HET
+
+    # HET
+    needPC <- which(is.na(prepClass[idsStart]) & msm[idsStart]==0)
     prepClass[idsStart[needPC]] <- sample(x = 1:3, size = length(needPC),
-                                          replace = TRUE, prob = prep.adhr.dist)
-  }
+                                          replace = TRUE, prob = prep.adhr.dist.het)
+
+    # MSM
+    needPC <- which(is.na(prepClass[idsStart]) & msm[idsStart]==1)
+    prepClass[idsStart[needPC]] <- sample(x = 1:3, size = length(needPC),
+                                          replace = TRUE, prob = prep.adhr.dist.msm)
+
+
+
+    }
 
 
   ## Output --------------------------------------------------------------------
@@ -191,12 +286,13 @@ riskhist_msm <- function(dat, at) {
 
   ## Parameters
 
-  ## Edgelist, adds uai summation per partnership from act list
+  ## Edgelist, adds ui summation per partnership from act list
+  #try sorting al and el by p1*1e7 + p2
   pid <- NULL # For R CMD Check
   al <- as.data.frame(dat$temp$al)
   by_pid <- group_by(al, pid)
-  uai <- summarise(by_pid, uai = sum(uai))[, 2]
-  el <- as.data.frame(cbind(dat$temp$el, uai))
+  ui <- summarise(by_pid, ui = sum(ui))[, 2]
+  el <- as.data.frame(cbind(dat$temp$el, ui))
 
   if (max(el[, 1:2]) > n) stop("riskhist max(el) > n")
 
@@ -204,54 +300,63 @@ riskhist_msm <- function(dat, at) {
   el2 <- el[el$st2 == 0, ]
 
   # Initialize attributes
-  if (is.null(dat$attr$prep.ind.uai.mono)) {
-    dat$attr$prep.ind.uai.mono <- rep(NA, n)
-    dat$attr$prep.ind.uai.nmain <- rep(NA, n)
+  if (is.null(dat$attr$prep.ind.ui.mono)) {
+    dat$attr$prep.ind.ui.mono <- rep(NA, n)
+    dat$attr$prep.ind.ui.nmain <- rep(NA, n)
     dat$attr$prep.ind.sti <- rep(NA, n)
   }
-  if (is.null(dat$attr$prep.ind.uai.conc)) {
-    dat$attr$prep.ind.uai.conc <- rep(NA, n)
+  if (is.null(dat$attr$prep.ind.ui.conc)) {
+    dat$attr$prep.ind.ui.conc <- rep(NA, n)
   }
 
   ## Degree ##
-  main.deg <- get_degree(dat$el[[1]])
-  casl.deg <- get_degree(dat$el[[2]])
-  inst.deg <- get_degree(dat$el[[3]])
+  main.deg.het <- get_degree(dat$el[[1]])
+  casl.deg.het <- get_degree(dat$el[[2]])
+  inst.deg.het <- get_degree(dat$el[[3]])
 
+  main.deg.msm <- get_degree(dat$el[[4]])
+  casl.deg.msm <- get_degree(dat$el[[5]])
+  inst.deg.msm <- get_degree(dat$el[[6]])
 
   ## Preconditions ##
 
-  # Any UAI
-  uai.any <- unique(c(el2$p1[el2$uai > 0],
-                      el2$p2[el2$uai > 0]))
+  # Any UI
+  ui.any <- unique(c(el2$p1[el2$ui > 0],
+                      el2$p2[el2$ui > 0]))
 
   # Monogamous partnerships: 1-sided
-  tot.deg <- main.deg + casl.deg + inst.deg
-  uai.mono1 <- intersect(which(tot.deg == 1), uai.any)
+  tot.deg <- main.deg.het + casl.deg.het + inst.deg.het + main.deg.msm + casl.deg.msm + inst.deg.msm
+  ui.mono1 <- intersect(which(tot.deg == 1), ui.any)
 
   # "Negative" partnerships
   tneg <- unique(c(el2$p1[el2$st1 == 0], el2$p2[el2$st1 == 0]))
   fneg <- unique(c(el2$p1[which(dx[el2$p1] == 0)], el2$p2[which(dx[el2$p1] == 0)]))
   all.neg <- c(tneg, fneg)
 
-  ## Condition 1b: UAI in 1-sided "monogamous" "negative" partnership,
+  ## Condition 1b: UI in 1-sided "monogamous" "negative" partnership,
   ##               partner not tested in past 6 months
-  uai.mono1.neg <- intersect(uai.mono1, all.neg)
-  part.id1 <- c(el2[el2$p1 %in% uai.mono1.neg, 2], el2[el2$p2 %in% uai.mono1.neg, 1])
+  ui.mono1.neg <- intersect(ui.mono1, all.neg)
+  part.id1 <- c(el2[el2$p1 %in% ui.mono1.neg, 2], el2[el2$p2 %in% ui.mono1.neg, 1])
   not.tested.6mo <- since.test[part.id1] > (180/7)
-  part.not.tested.6mo <- uai.mono1.neg[which(not.tested.6mo == TRUE)]
-  dat$attr$prep.ind.uai.mono[part.not.tested.6mo] <- at
+  part.not.tested.6mo <- ui.mono1.neg[which(not.tested.6mo == TRUE)]
+  dat$attr$prep.ind.ui.mono[part.not.tested.6mo] <- at
 
-  ## Condition 2a: UAI + concurrency
-  el2.uai <- el2[el2$uai > 0, ]
-  vec <- c(el2.uai[, 1], el2.uai[, 2])
-  uai.conc <- unique(vec[duplicated(vec)])
-  dat$attr$prep.ind.uai.conc[uai.conc] <- at
+  ## Condition 2a: UI + concurrency
+  el2.ui <- el2[el2$ui > 0, ]
+  vec <- c(el2.ui[, 1], el2.ui[, 2])
+  ui.conc <- unique(vec[duplicated(vec)])
+  dat$attr$prep.ind.ui.conc[ui.conc] <- at
 
   ## Condition 2b: UAI in non-main partnerships
-  uai.nmain <- unique(c(el2$p1[el2$st1 == 0 & el2$uai > 0 & el2$ptype %in% 2:3],
-                        el2$p2[el2$uai > 0 & el2$ptype %in% 2:3]))
-  dat$attr$prep.ind.uai.nmain[uai.nmain] <- at
+  ui.nmain.het <- unique(c(el2$p1[el2$st1 == 0 & el2$ui > 0 & el2$ptype %in% 2:3],
+                        el2$p2[el2$ui > 0 & el2$ptype %in% 2:3]))
+
+  ui.nmain.msm <- unique(c(el2$p1[el2$st1 == 0 & el2$ui > 0 & el2$ptype %in% 5:6],
+                           el2$p2[el2$ui > 0 & el2$ptype %in% 5:6]))
+
+  ui.nmain <- c(ui.nmain.het, ui.nmain.msm)
+
+  dat$attr$prep.ind.ui.nmain[ui.nmain] <- at
 
   ## Condition 4, any STI diagnosis
   idsDx <- which(rGC.tx == 1 | uGC.tx == 1 | rCT.tx == 1 | uCT.tx == 1)
