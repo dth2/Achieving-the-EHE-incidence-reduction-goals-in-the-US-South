@@ -85,7 +85,7 @@ control_msm(
     ~paste(age.grp, race, msm), empirical = TRUE) + sparse, MCMC.burnin = 3200000,
     MCMC.interval = 420000),
   tergmLite.track.duration = TRUE,
-  tergmLite = FALSE,
+  tergmLite = TRUE,
   ...
 )
 
@@ -169,7 +169,7 @@ control.net(
     ~paste(age.grp, race, msm), empirical = TRUE) + sparse, MCMC.burnin = 3200000,
     MCMC.interval = 420000),
   tergmLite.track.duration = TRUE,
-  tergmLite = FALSE,
+  tergmLite = TRUE,
   ...
 )
 }
