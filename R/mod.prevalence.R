@@ -178,6 +178,26 @@ prevalence_msm <- function(dat, at) {
   dat$epi$cc.dx.W.f.het[at] <- sum(diag.status == 1 & inf.time >= 2 & dem.cat == 9, na.rm = TRUE) /
                               sum(status == 1 & inf.time >= 2 & dem.cat == 9, na.rm = TRUE)
 
+  ##DX.rate
+  dat$epi$cc.dx.r.B.msm[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 1, na.rm = TRUE) /
+                                  sum(dem.cat == 1, na.rm = TRUE)) * 100000
+  dat$epi$cc.dx.r.H.msm[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 2, na.rm = TRUE) /
+                                  sum(dem.cat == 2, na.rm = TRUE)) * 100000
+  dat$epi$cc.dx.r.W.msm[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 3, na.rm = TRUE) /
+                                  sum(dem.cat == 3, na.rm = TRUE)) * 100000
+  dat$epi$cc.dx.r.B.m.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 4, na.rm = TRUE) /
+                                    sum(dem.cat == 4, na.rm = TRUE)) * 100000
+  dat$epi$cc.dx.r.H.m.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 5, na.rm = TRUE) /
+                                    sum(dem.cat == 5, na.rm = TRUE)) * 100000
+  dat$epi$cc.dx.r.W.m.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 6, na.rm = TRUE) /
+                                    sum(dem.cat == 6, na.rm = TRUE)) * 100000
+  dat$epi$cc.dx.r.B.f.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 7, na.rm = TRUE) /
+                                    sum(dem.cat == 7, na.rm = TRUE)) * 100000
+  dat$epi$cc.dx.H.r.f.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 8, na.rm = TRUE) /
+                                    sum(dem.cat == 8, na.rm = TRUE)) * 100000
+  dat$epi$cc.dx.W.r.f.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 9, na.rm = TRUE) /
+                                    sum(dem.cat == 9, na.rm = TRUE)) * 100000
+
 
   dat$epi$cc.dx.aids[at] <- sum(diag.status == 1 & stage == 4 & inf.time >= 2 &
                                   aids.time - diag.time <= 52, na.rm = TRUE) /
