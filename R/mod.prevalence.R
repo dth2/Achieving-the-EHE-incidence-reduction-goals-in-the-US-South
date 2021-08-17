@@ -193,9 +193,9 @@ prevalence_msm <- function(dat, at) {
                                     sum(dem.cat == 6, na.rm = TRUE)) * 100000
   dat$epi$cc.dx.r.B.f.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 7, na.rm = TRUE) /
                                     sum(dem.cat == 7, na.rm = TRUE)) * 100000
-  dat$epi$cc.dx.H.r.f.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 8, na.rm = TRUE) /
+  dat$epi$cc.dx.r.H.f.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 8, na.rm = TRUE) /
                                     sum(dem.cat == 8, na.rm = TRUE)) * 100000
-  dat$epi$cc.dx.W.r.f.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 9, na.rm = TRUE) /
+  dat$epi$cc.dx.r.W.f.het[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 9, na.rm = TRUE) /
                                     sum(dem.cat == 9, na.rm = TRUE)) * 100000
 
 
@@ -370,6 +370,9 @@ prevalence_msm <- function(dat, at) {
 
 
   #COVERAGE ON ART given infected
+
+  dat$epi$cc.ART.cov.infected[at] <- sum(tx.status = 1, na.rm = TRUE) /
+    sum(status == 1, na.rm = TRUE)
 
   dat$epi$cc.ART.cov.infected.B.msm[at] <- sum(tx.status = 1 & dem.cat == 1, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 1, na.rm = TRUE)
