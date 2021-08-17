@@ -386,7 +386,21 @@ reinit_msm <- function(x, param, init, control, s) {
 
   dat$param <- param
   dat$param$modes <- 1
-  dat$control <- control
+
+  control.new <- control
+  dat$control <- x$control
+
+  dat$control$nsteps <- control.new$nsteps
+  dat$control$simno <- control.new$simno
+  dat$control$nsims <- control.new$nsims
+  dat$control$ncores <- control.new$ncores
+  dat$control$start <- control.new$start
+  dat$control$initialize.FUN <- control.new$initialize.FUN
+  dat$control$tergmLite.track.duration <- control.new$tergmLite.track.duration
+  dat$control$tergmLite <- control.new$tergmLite
+  dat$control$save.other <- control.new$save.other
+  dat$control$verbose <- control.new$verbose
+
   dat$nwparam <- x$nwparam
 
   dat$epi <- sapply(x$epi, function(var) var[s])
