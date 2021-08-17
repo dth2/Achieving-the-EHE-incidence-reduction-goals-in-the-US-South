@@ -33,7 +33,6 @@ simnet_msm <- function(dat, at) {
                                       control = dat$control$mcmc.control[[1]],
                                       save.changes = TRUE)
 
-
   dat$el[[1]] <- rv_1$el
 
   if(dat$control$tergmLite.track.duration) {
