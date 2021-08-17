@@ -68,24 +68,24 @@ control_msm(
     = 1:2) + offset(nodefactor("msm", levels = -2)),
   mcmc.control.tergm.1 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
     ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
-    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+    1e+08, MCMC.burnin.min = 160000, MCMC.burnin.max = 1400000),
   mcmc.control.tergm.2 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
     ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
-    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+    1e+08, MCMC.burnin.min = 160000, MCMC.burnin.max = 1700000),
   mcmc.control.ergm.3 = control.simulate.formula(MCMC.prop = ~strat(attr =
-    ~paste(age.grp, race, het), empirical = TRUE) + sparse, MCMC.burnin = 3e+06,
-    MCMC.interval = 3e+05),
+    ~paste(age.grp, race, het), empirical = TRUE) + sparse, MCMC.burnin = 2800000,
+    MCMC.interval = 280000),
   mcmc.control.tergm.4 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
     ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
-    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+    1e+08, MCMC.burnin.min = 160000, MCMC.burnin.max = 1400000),
   mcmc.control.tergm.5 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
     ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
-    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+    1e+08, MCMC.burnin.min = 160000, MCMC.burnin.max = 1400000),
   mcmc.control.ergm.6 = control.simulate.formula(MCMC.prop = ~strat(attr =
-    ~paste(age.grp, race, msm), empirical = TRUE) + sparse, MCMC.burnin = 3200000,
-    MCMC.interval = 420000),
+    ~paste(age.grp, race, msm), empirical = TRUE) + sparse, MCMC.burnin = 3100000,
+    MCMC.interval = 4e+05),
   tergmLite.track.duration = TRUE,
-  tergmLite = TRUE,
+  tergmLite = FALSE,
   ...
 )
 
@@ -152,24 +152,24 @@ control.net(
     = 1:2) + offset(nodefactor("msm", levels = -2)),
   mcmc.control.tergm.1 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
     ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
-    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+    1e+08, MCMC.burnin.min = 160000, MCMC.burnin.max = 1400000),
   mcmc.control.tergm.2 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
     ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
-    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+    1e+08, MCMC.burnin.min = 160000, MCMC.burnin.max = 1700000),
   mcmc.control.ergm.3 = control.simulate.formula(MCMC.prop = ~strat(attr =
-    ~paste(age.grp, race, het), empirical = TRUE) + sparse, MCMC.burnin = 3e+06,
-    MCMC.interval = 3e+05),
+    ~paste(age.grp, race, het), empirical = TRUE) + sparse, MCMC.burnin = 2800000,
+    MCMC.interval = 280000),
   mcmc.control.tergm.4 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
     ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
-    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+    1e+08, MCMC.burnin.min = 160000, MCMC.burnin.max = 1400000),
   mcmc.control.tergm.5 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr =
     ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse, MCMC.maxchanges =
-    1e+08, MCMC.burnin.min = 170000, MCMC.burnin.max = 1500000),
+    1e+08, MCMC.burnin.min = 160000, MCMC.burnin.max = 1400000),
   mcmc.control.ergm.6 = control.simulate.formula(MCMC.prop = ~strat(attr =
-    ~paste(age.grp, race, msm), empirical = TRUE) + sparse, MCMC.burnin = 3200000,
-    MCMC.interval = 420000),
+    ~paste(age.grp, race, msm), empirical = TRUE) + sparse, MCMC.burnin = 3100000,
+    MCMC.interval = 4e+05),
   tergmLite.track.duration = TRUE,
-  tergmLite = TRUE,
+  tergmLite = FALSE,
   ...
 )
 }
