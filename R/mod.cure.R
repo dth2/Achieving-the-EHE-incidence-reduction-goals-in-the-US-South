@@ -36,7 +36,7 @@ if(at %in% cure.time){
 cure.list <- NULL
 cure.ids <- NULL
 
-for(i in 1:9){
+for(i in 9:1){
 
   #Select indexes to cure
   #select half the difference between curent case counts and targets to because partners will be cured increasing counts
