@@ -371,26 +371,26 @@ prevalence_msm <- function(dat, at) {
 
   #COVERAGE ON ART given infected
 
-  dat$epi$cc.ART.cov.infected[at] <- sum(tx.status = 1, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected[at] <- sum(tx.status == 1, na.rm = TRUE) /
     sum(status == 1, na.rm = TRUE)
 
-  dat$epi$cc.ART.cov.infected.B.msm[at] <- sum(tx.status = 1 & dem.cat == 1, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected.B.msm[at] <- sum(tx.status == 1 & dem.cat == 1, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 1, na.rm = TRUE)
-  dat$epi$cc.ART.cov.infected.H.msm[at] <- sum(tx.status = 1 & dem.cat == 2, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected.H.msm[at] <- sum(tx.status == 1 & dem.cat == 2, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 2, na.rm = TRUE)
-  dat$epi$cc.ART.cov.infected.W.msm[at] <- sum(tx.status = 1 & dem.cat == 3, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected.W.msm[at] <- sum(tx.status == 1 & dem.cat == 3, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 3, na.rm = TRUE)
-  dat$epi$cc.ART.cov.infected.B.m.het[at] <- sum(tx.status = 1 & dem.cat == 4, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected.B.m.het[at] <- sum(tx.status == 1 & dem.cat == 4, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 4, na.rm = TRUE)
-  dat$epi$cc.ART.cov.infected.H.m.het[at] <- sum(tx.status = 1 & dem.cat == 5, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected.H.m.het[at] <- sum(tx.status == 1 & dem.cat == 5, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 5, na.rm = TRUE)
-  dat$epi$cc.ART.cov.infected.W.m.het[at] <- sum(tx.status = 1 & dem.cat == 6, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected.W.m.het[at] <- sum(tx.status == 1 & dem.cat == 6, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 6, na.rm = TRUE)
-  dat$epi$cc.ART.cov.infected.B.f.het[at] <- sum(tx.status = 1 & dem.cat == 7, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected.B.f.het[at] <- sum(tx.status == 1 & dem.cat == 7, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 7, na.rm = TRUE)
-  dat$epi$cc.ART.cov.infected.H.f.het[at] <- sum(tx.status = 1 & dem.cat == 8, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected.H.f.het[at] <- sum(tx.status == 1 & dem.cat == 8, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 8, na.rm = TRUE)
-  dat$epi$cc.ART.cov.infected.W.f.het[at] <- sum(tx.status = 1 & dem.cat == 9, na.rm = TRUE) /
+  dat$epi$cc.ART.cov.infected.W.f.het[at] <- sum(tx.status == 1 & dem.cat == 9, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 9, na.rm = TRUE)
 
 
@@ -567,15 +567,15 @@ prevalence_msm <- function(dat, at) {
   dat$epi$prepCurr.H.f.het[at] <- sum(prepStat == 1 & dem.cat == 8, na.rm = TRUE)
   dat$epi$prepCurr.W.f.het[at] <- sum(prepStat == 1 & dem.cat == 9, na.rm = TRUE)
 
-  dat$epi$prepCurr.B.msm[at] <- max(0,(dat$epi$prepCurr.B.msm[at] / dat$epi$prepElig.B.msm[at]) )
-  dat$epi$prepCurr.H.msm[at] <- max(0,(dat$epi$prepCurr.H.msm[at] / dat$epi$prepElig.H.msm[at]) )
-  dat$epi$prepCurr.W.msm[at] <- max(0,(dat$epi$prepCurr.W.msm[at] / dat$epi$prepElig.W.msm[at]) )
-  dat$epi$prepCurr.B.m.het[at] <- max(0,(dat$epi$prepCurr.B.m.het[at] / dat$epi$prepElig.B.m.het[at]) )
-  dat$epi$prepCurr.H.m.het[at] <- max(0,(dat$epi$prepCurr.H.m.het[at] / dat$epi$prepElig.H.m.het[at]) )
-  dat$epi$prepCurr.W.m.het[at] <- max(0,(dat$epi$prepCurr.W.m.het[at] / dat$epi$prepElig.W.m.het[at]) )
-  dat$epi$prepCurr.B.f.het[at] <- max(0,(dat$epi$prepCurr.B.f.het[at] / dat$epi$prepElig.B.f.het[at]) )
-  dat$epi$prepCurr.H.f.het[at] <- max(0,(dat$epi$prepCurr.H.f.het[at] / dat$epi$prepElig.H.f.het[at]) )
-  dat$epi$prepCurr.W.f.het[at] <- max(0,(dat$epi$prepCurr.W.f.het[at] / dat$epi$prepElig.W.f.het[at]) )
+  dat$epi$prepCov.B.msm[at] <- max(0,(dat$epi$prepCurr.B.msm[at] / dat$epi$prepElig.B.msm[at]) )
+  dat$epi$prepCov.H.msm[at] <- max(0,(dat$epi$prepCurr.H.msm[at] / dat$epi$prepElig.H.msm[at]) )
+  dat$epi$prepCov.W.msm[at] <- max(0,(dat$epi$prepCurr.W.msm[at] / dat$epi$prepElig.W.msm[at]) )
+  dat$epi$prepCov.B.m.het[at] <- max(0,(dat$epi$prepCurr.B.m.het[at] / dat$epi$prepElig.B.m.het[at]) )
+  dat$epi$prepCov.H.m.het[at] <- max(0,(dat$epi$prepCurr.H.m.het[at] / dat$epi$prepElig.H.m.het[at]) )
+  dat$epi$prepCov.W.m.het[at] <- max(0,(dat$epi$prepCurr.W.m.het[at] / dat$epi$prepElig.W.m.het[at]) )
+  dat$epi$prepCov.B.f.het[at] <- max(0,(dat$epi$prepCurr.B.f.het[at] / dat$epi$prepElig.B.f.het[at]) )
+  dat$epi$prepCov.H.f.het[at] <- max(0,(dat$epi$prepCurr.H.f.het[at] / dat$epi$prepElig.H.f.het[at]) )
+  dat$epi$prepCov.W.f.het[at] <- max(0,(dat$epi$prepCurr.W.f.het[at] / dat$epi$prepElig.W.f.het[at]) )
 
 
 
