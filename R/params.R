@@ -188,7 +188,7 @@ param_msm <- function(netstats,
 
                       ##AHEAD 2019
                       #tx.init.prob = c(0.315, 0.367, 0.350, 0.301, 0.347, 0.332, 0.3075, 0.357, 0.341),
-                      tx.init.prob = c(0.31, 0.362, 0.345, 0.296, 0.347, 0.327, 0.3075, 0.357, 0.341),
+                      tx.init.prob = c(0.3, 0.35, 0.34, 0.29, 0.34, 0.32, 0.30, 0.35, 0.34),
 
                       #Tune halt and reinit to get 75.59 on care (engaged in care based on AIDSvue)
                       tx.halt.part.prob = c(0.01, 0.01, 0.01,0.01, 0.01, 0.01,0.01, 0.01, 0.01),
