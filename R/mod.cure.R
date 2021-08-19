@@ -44,8 +44,17 @@ for(i in 9:1){
 
   group <- which(dem.cat==i & status ==1)
   pos.count <- length(group)
-  cure.count <- round((max(0,pos.count - prev.targ[i]))/2)
+
+  if(i > 3){
+  cure.count <- round((max(0,pos.count - prev.targ[i]))/4)
   cure.ids <- sample(group,cure.count,replace=FALSE)
+  }
+
+  if(i <= 3){
+    cure.count <- round((max(0,pos.count - prev.targ[i]))/2)
+    cure.ids <- sample(group,cure.count,replace=FALSE)
+  }
+
 
 ##el is index not uid
 
