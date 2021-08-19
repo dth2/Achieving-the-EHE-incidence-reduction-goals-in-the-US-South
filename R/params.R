@@ -316,7 +316,8 @@ param_msm <- function(netstats,
                       riskh.start = Inf,
                       prep.start = Inf,
                       #cases per 100K MSM / HET (1351.2, 1.9, 1.9),
-                      #baseline coverage / 100K population MSM or het (surveillance cases allocated by relative population proportions by race)
+                      #baseline coverage / 100K population MSM or het (surveillance cases allocated
+                      #by relative population proportions by race)
                       #count then rewighted to reflect race proportions given indication
                       prep.base.cov = c(51.728, 96.728, 1202.744, .074, .136, 1.69, .074, .136, 1.69),
                       #Adherence is MSM / HET althother the het data come from females
@@ -341,7 +342,7 @@ param_msm <- function(netstats,
 
 #______________________________________________________________
 ## Cure
-cure.time = c(520, 1040, 2492, 2493, 2494, 2495),
+cure.time = c(52, 520, 1040, 1560, 2492, 2493, 2494, 2495),
 prev.targ = round(c(.278, .158, .196, .064, .036, .045, .098, .056, .069)*(500000*.00517),0),
 
 #______________________________________________________________
@@ -577,11 +578,11 @@ control_msm <- function(simno = 1,
                         mcmc.control.tergm.4 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse,
                                                                               MCMC.maxchanges = 1e8,
                                                                               MCMC.burnin.min =1.5e5,
-                                                                              MCMC.burnin.max =1.5e6),
+                                                                              MCMC.burnin.max =1.8e6),
                         mcmc.control.tergm.5 = control.simulate.formula.tergm(MCMC.prop = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse,
                                                                               MCMC.maxchanges = 1e8,
                                                                               MCMC.burnin.min =1.5e5,
-                                                                              MCMC.burnin.max =1.5e6),
+                                                                              MCMC.burnin.max =1.8e6),
                         mcmc.control.ergm.6 = control.simulate.formula(MCMC.prop = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + sparse,
                                                                        MCMC.burnin=3.1e6,
                                                                        MCMC.interval=4e5),
