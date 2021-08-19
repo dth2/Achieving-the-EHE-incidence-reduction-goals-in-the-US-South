@@ -34,6 +34,7 @@ prep_msm <- function(dat, at) {
   lnt <- dat$attr$last.neg.test
   dem.cat <- dat$attr$dem.cat
   msm <- dat$attr$msm
+  age <- dat$attr$age
 
   # PrEP Attributes
   prepElig <- dat$attr$prepElig
@@ -157,7 +158,7 @@ prep_msm <- function(dat, at) {
   if (prep.require.lnt == TRUE) {
     idsEligStart <- which(prepStat == 0 & lnt == at)
   } else {
-    idsEligStart <- which(prepStat == 0)
+    idsEligStart <- which(prepStat == 0 & status == 0)
   }
 
   idsEligStart <- intersect(idsIndic, idsEligStart)
@@ -200,7 +201,7 @@ for(i in 1:9){
     dem.list<- dem.cat[idsEligStart]
     cov <- dem.cat.prep.fixed.prop[i]
 
-    count <- sum(dem.cat==i) * cov
+    count <- sum(dem.cat==i &  prepElig == 1) * cov
     #subtract of those on PrEP
     on.prep <- which(dat$attr$dem.cat==i & dat$attr$prepStat == 1)
     count <- count - length(on.prep)
