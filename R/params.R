@@ -191,7 +191,7 @@ param_msm <- function(netstats,
                       tx.init.prob = c(0.3, 0.35, 0.34, 0.29, 0.34, 0.32, 0.30, 0.35, 0.34),
 
                       #Tune halt and reinit to get 75.59 on care (engaged in care based on AIDSvue)
-                      tx.halt.part.prob = c(0.01, 0.01, 0.01,0.01, 0.01, 0.01,0.01, 0.01, 0.01),
+                      tx.halt.part.prob = c(0.003, 0.003, 0.003,0.003, 0.003, 0.003,0.003, 0.003, 0.003),
                       tx.halt.full.rr = c(0.9, 0.9, 0.9,0.9, 0.9, 0.9,0.9, 0.9, 0.9),
                       tx.halt.dur.rr = c(0.5, 0.5, 0.5,0.5, 0.5, 0.5,0.5, 0.5, 0.5),
                       tx.reinit.part.prob = c(0.00066, 0.00066, 0.00291,0.00066, 0.00066, 0.00291,0.00066, 0.00066, 0.00291),
