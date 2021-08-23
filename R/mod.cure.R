@@ -51,7 +51,7 @@ for(i in 9:1){
   }
 
   if(i <= 3){
-    cure.count <- round((max(0,pos.count - prev.targ[i]))/2)
+    cure.count <- round((max(0,pos.count - prev.targ[i]))/3)
     cure.ids <- sample(group,cure.count,replace=FALSE)
   }
 
