@@ -175,7 +175,7 @@ init_status_msm <- function(dat) {
   dat$attr$diag.status <- rep(0, num)
   dat$attr$status <- rep(0, num)
 
-  hiv.num <- (round(.7 * num)) * dat$param$HIV.south
+  hiv.num <- (round(.6 * num)) * dat$param$HIV.south
 
   for(i in 1:3){
 
