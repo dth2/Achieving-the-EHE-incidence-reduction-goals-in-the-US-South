@@ -149,14 +149,14 @@ prevalence_msm <- function(dat, at) {
   dat$epi$ir100.adol[at] <- (dat$epi$incid.adol[at] / sum(status == 0 & age < 18, dat$epi$incid.adol[at], na.rm = TRUE)) * 5200
 
   ##Incidence per 100K people
-  dat$epi$ir100K[at] <- ((sum(dat$epi$incid[at-52:at], na.rm = TRUE) / dat$epi$num[at]))*100000
-  dat$epi$ir100K.M[at]  <- ((sum(dat$epi$incid.M[at-52:at], na.rm = TRUE) / sum(sex == 1, na.rm = TRUE)))*100000
-  dat$epi$ir100K.F[at]  <- ((sum(dat$epi$incid.F[at-52:at], na.rm = TRUE) / sum(sex == 2, na.rm = TRUE)))*100000
-  dat$epi$ir100K.B[at]  <- ((sum(dat$epi$incid.B[at-52:at], na.rm = TRUE) / sum(race == 1, na.rm = TRUE)))*100000
-  dat$epi$ir100K.H[at]  <- ((sum(dat$epi$incid.H[at-52:at], na.rm = TRUE) / sum(race == 2, na.rm = TRUE)))*100000
-  dat$epi$ir100K.W[at]  <- ((sum(dat$epi$incid.W[at-52:at], na.rm = TRUE) / sum(race == 3, na.rm = TRUE)))*100000
-  dat$epi$ir100K.MSM[at]  <- ((sum(dat$epi$incid.W[at-52:at], na.rm = TRUE) / sum(msm == 1, na.rm = TRUE)))*100000
-  dat$epi$i.prop.MSM[at] <-sum(dat$epi$incid.MSM[at-52:at], na.rm = TRUE) / sum(dat$epi$incid[at-52:at], na.rm = TRUE)
+  dat$epi$ir100K[at] <- ((sum(dat$epi$incid[(at-52):at], na.rm = TRUE) / dat$epi$num[at]))*100000
+  dat$epi$ir100K.M[at]  <- ((sum(dat$epi$incid.M[(at-52):at], na.rm = TRUE) / sum(sex == 1, na.rm = TRUE)))*100000
+  dat$epi$ir100K.F[at]  <- ((sum(dat$epi$incid.F[(at-52):at], na.rm = TRUE) / sum(sex == 2, na.rm = TRUE)))*100000
+  dat$epi$ir100K.B[at]  <- ((sum(dat$epi$incid.B[(at-52):at], na.rm = TRUE) / sum(race == 1, na.rm = TRUE)))*100000
+  dat$epi$ir100K.H[at]  <- ((sum(dat$epi$incid.H[(at-52):at], na.rm = TRUE) / sum(race == 2, na.rm = TRUE)))*100000
+  dat$epi$ir100K.W[at]  <- ((sum(dat$epi$incid.W[(at-52):at], na.rm = TRUE) / sum(race == 3, na.rm = TRUE)))*100000
+  dat$epi$ir100K.MSM[at]  <- ((sum(dat$epi$incid.W[(at-52):at], na.rm = TRUE) / sum(msm == 1, na.rm = TRUE)))*100000
+  dat$epi$i.prop.MSM[at] <-sum(dat$epi$incid.MSM[(at-52):at], na.rm = TRUE) / sum(dat$epi$incid[(at-52):at], na.rm = TRUE)
 
   # Care continuum stats (primary)
   dat$epi$cc.dx[at] <- sum(diag.status == 1 & inf.time >= 2, na.rm = TRUE) /
