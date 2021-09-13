@@ -19,6 +19,7 @@
 
 cure_prev <- function(dat, at) {
 
+
 #parameters
 cure.time <- dat$param$cure.time
 cure.time.w <- dat$param$cure.time.w
@@ -327,7 +328,7 @@ if(at %in% cure.time.nbmsm){
     }
 
     if(i <= 3){
-      cure.count <- round((max(0,pos.count - prev.targ[i]))/2)
+      cure.count <- round((max(0,pos.count - prev.targ[i]))/3)
       cure.ids <- sample(group,cure.count,replace=FALSE)
     }
 
