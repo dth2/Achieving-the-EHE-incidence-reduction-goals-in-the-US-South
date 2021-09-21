@@ -83,7 +83,15 @@ setNewAttr_msm <- function(dat, at, nNew) {
   dat$attr$race[newIds]  <- ifelse(dat$attr$dem.cat[newIds] == 3 | dat$attr$dem.cat[newIds] == 6 | dat$attr$dem.cat[newIds] == 9,3,dat$attr$race[newIds])
   dat$attr$sex[newIds]  <- ifelse(dat$attr$dem.cat[newIds] <= 6,1,2)
 
-
+  dat$attr$race.sex[newIds] <- ifelse(dat$attr$dem.cat[newIds] == 1,1,dat$attr$race.sex[newIds])
+  dat$attr$race.sex[newIds] <- ifelse(dat$attr$dem.cat[newIds] == 2,2,dat$attr$race.sex[newIds])
+  dat$attr$race.sex[newIds] <- ifelse(dat$attr$dem.cat[newIds] == 3,3,dat$attr$race.sex[newIds])
+  dat$attr$race.sex[newIds] <- ifelse(dat$attr$dem.cat[newIds] == 4,1,dat$attr$race.sex[newIds])
+  dat$attr$race.sex[newIds] <- ifelse(dat$attr$dem.cat[newIds] == 5,2,dat$attr$race.sex[newIds])
+  dat$attr$race.sex[newIds] <- ifelse(dat$attr$dem.cat[newIds] == 6,3,dat$attr$race.sex[newIds])
+  dat$attr$race.sex[newIds] <- ifelse(dat$attr$dem.cat[newIds] == 7,4,dat$attr$race.sex[newIds])
+  dat$attr$race.sex[newIds] <- ifelse(dat$attr$dem.cat[newIds] == 8,5,dat$attr$race.sex[newIds])
+  dat$attr$race.sex[newIds] <- ifelse(dat$attr$dem.cat[newIds] == 9,6,dat$attr$race.sex[newIds])
 
 
 ##Assign bisexual fractions fractions race specific
