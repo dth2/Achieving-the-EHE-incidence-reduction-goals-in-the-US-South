@@ -30,6 +30,7 @@ departure_msm <- function(dat, at) {
   status <- dat$attr$status
   stage <- dat$attr$stage
   tx.status <- dat$attr$tx.status
+  race.sex <- dat$attr$race.sex
 
   aids.mr <- dat$param$aids.mr
   asmr <- dat$param$netstats$demog$asmr
@@ -37,10 +38,10 @@ departure_msm <- function(dat, at) {
   idsElig <- which(active == 1)
   rates <- rep(NA, length(idsElig))
 
-  races <- sort(unique(race))
-  for (i in seq_along(races)) {
-    ids.race <- which(race == races[i])
-    rates[ids.race] <- asmr[age[ids.race], i + 1]
+  races.sex <- sort(unique(race.sex))
+  for (i in seq_along(races.sex)) {
+    ids.race.sex <- which(race.sex == races.sex[i])
+    rates[ids.race.sex] <- asmr[age[ids.race.sex], i + 1]
   }
   idsDep <- idsElig[rbinom(length(rates), 1, rates) == 1]
 
