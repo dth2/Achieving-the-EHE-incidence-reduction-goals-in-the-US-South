@@ -73,6 +73,19 @@ initialize_msm <- function(x, param, init, control, s) {
                              ifelse(dat$attr$msm==0 & dat$attr$sex==2 & dat$attr$race==2, 8,
                              ifelse(dat$attr$msm==0 & dat$attr$sex==2 & dat$attr$race==3, 9,dat$attr$dem.cat)))))))))
 
+  dat$attr$race.sex <- rep(NA,num)
+  dat$attr$race.sex <- ifelse(dat$attr$dem.cat == 1,1,dat$attr$race.sex)
+  dat$attr$race.sex <- ifelse(dat$attr$dem.cat == 2,2,dat$attr$race.sex)
+  dat$attr$race.sex <- ifelse(dat$attr$dem.cat == 3,3,dat$attr$race.sex)
+  dat$attr$race.sex <- ifelse(dat$attr$dem.cat == 4,1,dat$attr$race.sex)
+  dat$attr$race.sex <- ifelse(dat$attr$dem.cat == 5,2,dat$attr$race.sex)
+  dat$attr$race.sex <- ifelse(dat$attr$dem.cat == 6,3,dat$attr$race.sex)
+  dat$attr$race.sex <- ifelse(dat$attr$dem.cat == 7,4,dat$attr$race.sex)
+  dat$attr$race.sex <- ifelse(dat$attr$dem.cat == 8,5,dat$attr$race.sex)
+  dat$attr$race.sex <- ifelse(dat$attr$dem.cat == 9,6,dat$attr$race.sex)
+
+
+
 
   dat$param$dem.dist <- prop.table(table(dat$param$netstats$attr$dem.cat))
 
