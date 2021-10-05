@@ -402,7 +402,29 @@ prevalence_msm <- function(dat, at) {
   dat$epi$cc.ART.cov.infected.W.f.het[at] <- sum(tx.status == 1 & dem.cat == 9, na.rm = TRUE) /
           sum(status == 1 & dem.cat == 9, na.rm = TRUE)
 
+  #COVERAGE ON ART given diagnosed
 
+  dat$epi$cc.ART.cov.diagnosed[at] <- sum(diag.status == 1, na.rm = TRUE) /
+    sum(status == 1, na.rm = TRUE)
+
+  dat$epi$cc.ART.cov.diagnosed.B.msm[at] <- sum(diag.status == 1 & dem.cat == 1, na.rm = TRUE) /
+    sum(status == 1 & dem.cat == 1, na.rm = TRUE)
+  dat$epi$cc.ART.cov.diagnosed.H.msm[at] <- sum(diag.status == 1 & dem.cat == 2, na.rm = TRUE) /
+    sum(status == 1 & dem.cat == 2, na.rm = TRUE)
+  dat$epi$cc.ART.cov.diagnosed.W.msm[at] <- sum(diag.status == 1 & dem.cat == 3, na.rm = TRUE) /
+    sum(status == 1 & dem.cat == 3, na.rm = TRUE)
+  dat$epi$cc.ART.cov.diagnosed.B.m.het[at] <- sum(diag.status == 1 & dem.cat == 4, na.rm = TRUE) /
+    sum(status == 1 & dem.cat == 4, na.rm = TRUE)
+  dat$epi$cc.ART.cov.diagnosed.H.m.het[at] <- sum(diag.status == 1 & dem.cat == 5, na.rm = TRUE) /
+    sum(status == 1 & dem.cat == 5, na.rm = TRUE)
+  dat$epi$cc.ART.cov.diagnosed.W.m.het[at] <- sum(diag.status == 1 & dem.cat == 6, na.rm = TRUE) /
+    sum(status == 1 & dem.cat == 6, na.rm = TRUE)
+  dat$epi$cc.ART.cov.diagnosed.B.f.het[at] <- sum(diag.status == 1 & dem.cat == 7, na.rm = TRUE) /
+    sum(status == 1 & dem.cat == 7, na.rm = TRUE)
+  dat$epi$cc.ART.cov.diagnosed.H.f.het[at] <- sum(diag.status == 1 & dem.cat == 8, na.rm = TRUE) /
+    sum(status == 1 & dem.cat == 8, na.rm = TRUE)
+  dat$epi$cc.ART.cov.diagnosed.W.f.het[at] <- sum(diag.status == 1 & dem.cat == 9, na.rm = TRUE) /
+    sum(status == 1 & dem.cat == 9, na.rm = TRUE)
 
 
   # Care continuum stats (secondary)
