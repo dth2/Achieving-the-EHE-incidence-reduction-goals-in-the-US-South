@@ -197,6 +197,9 @@ hivtx_msm <- function(dat, at) {
   tx.period.last[idsContPeriod] <- at
 
   dat$attr$tt.traj <- tt.traj
+
+  if(length(tx.init.fixed) > 0) {dat$attr$tt.traj[tx.init.fixed] <- 1}
+
   dat$attr$tx.status <- tx.status
   dat$attr$cuml.time.on.tx <- cuml.time.on.tx
   dat$attr$cuml.time.off.tx <- cuml.time.off.tx
