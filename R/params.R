@@ -231,15 +231,15 @@ param_msm <- function(netstats,
                       vl.acute.peak = 6.76,   #rob et al 2016
                       vl.acute.fall.int = 2.86,  #rob et al 2016
                       vl.set.point = 4.0, #rob et al 2016
-                      vl.aids.onset.int = 471, #rob et al 2016
-                      vl.aids.int = 40, #rob et al 2016
+                      vl.aids.onset.int = 507, #buckbinder Katz
+                      vl.aids.int = 104, #buckbinder
                       vl.aids.peak = 7,
                       vl.full.supp = 1.5,
                       vl.part.supp = 3.5,
                       vl.tx.down.slope = 0.25,
                       vl.tx.aids.down.slope = 0.25,
                       vl.tx.up.slope = 0.25,
-                      aids.mr = 1/40, #rob et al 2016
+                      aids.mr = 1/104, #buckbinder
 
 
 
