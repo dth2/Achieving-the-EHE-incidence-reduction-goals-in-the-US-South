@@ -23,7 +23,7 @@ cure_prev <- function(dat, at) {
 #parameters
 cure.time <- dat$param$cure.time
 cure.time.w <- dat$param$cure.time.w
-cure.time.nbmsm <- dat$param$cure.time.nbmsm
+cure.time.msm <- dat$param$cure.time.msm
 prev.targ <- dat$param$prev.targ
 
 
@@ -302,7 +302,7 @@ if(at %in% cure.time.w){
 }
 
 
-if(at %in% cure.time.nbmsm){
+if(at %in% cure.time.msm){
 
   #Attributes
   dem.cat <- dat$attr$dem.cat
@@ -313,7 +313,7 @@ if(at %in% cure.time.nbmsm){
   cure.list <- NULL
   cure.ids <- NULL
 
-  for(i in 2:9){
+  for(i in 1:3){
 
     #Select indexes to cure
     #select half the difference between curent case counts and targets to because partners will be cured increasing counts
@@ -322,39 +322,15 @@ if(at %in% cure.time.nbmsm){
     group <- which(dem.cat==i & status ==1)
     pos.count <- length(group)
 
-    if(i > 3){
-      cure.count <- round((max(0,pos.count - prev.targ[i]))/3)
-      cure.ids <- sample(group,cure.count,replace=FALSE)
-    }
 
     if(i <= 3){
-      cure.count <- round((max(0,pos.count - prev.targ[i]))/3)
+      cure.count <- round((max(0,pos.count - prev.targ[i]))/2)
       cure.ids <- sample(group,cure.count,replace=FALSE)
     }
 
 
     ##el is index not uid
 
-    #main partners
-    #Heterosexual
-
-    if(i > 3){
-      p1.id.list <- c(dat$el[[1]][,1])
-      p2.id.list <- c(dat$el[[1]][,2])
-      p1 <- intersect( p1.id.list,cure.ids)
-      p2 <- intersect( p2.id.list,cure.ids)
-
-      alters1 <- which(dat$el[[1]][,1] %in% p1)
-      alters1 <- dat$el[[1]][,2][alters1]
-      alters1 <- as.vector(alters1)
-
-      alters2 <- which(dat$el[[1]][,2] %in% p2)
-      alters2 <- dat$el[[1]][,1][alters2]
-      alters2 <-as.vector(alters2)
-
-      cure.list <- c(cure.list, cure.ids, alters1, alters2)
-      cure.list <- unique(cure.list)
-    }
 
     #MSM
     if(i < 4){
@@ -376,26 +352,6 @@ if(at %in% cure.time.nbmsm){
     }
 
     #casual partners
-    #Heterosexual
-
-    if(i > 3){
-      p1.id.list <- c(dat$el[[2]][,1])
-      p2.id.list <- c(dat$el[[2]][,2])
-      p1 <- intersect( p1.id.list,cure.ids)
-      p2 <- intersect( p2.id.list,cure.ids)
-
-      alters1 <- which(dat$el[[2]][,1] %in% p1)
-      alters1 <- dat$el[[2]][,2][alters1]
-      alters1 <- as.vector(alters1)
-
-      alters2 <- which(dat$el[[2]][,2] %in% p2)
-      alters2 <- dat$el[[2]][,1][alters2]
-      alters2 <- as.vector(alters2)
-
-      cure.list <- c(cure.list, cure.ids, alters1, alters2)
-      cure.list <- unique(cure.list)
-    }
-
     #MSM
     if(i < 4){
       p1.id.list <- c(dat$el[[5]][,1])
