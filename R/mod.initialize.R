@@ -413,6 +413,9 @@ reinit_msm <- function(x, param, init, control, s) {
   dat$control$tergmLite <- control.new$tergmLite
   dat$control$save.other <- control.new$save.other
   dat$control$verbose <- control.new$verbose
+  dat$control$save.int <- control.new$save.int
+  dat$control$savedata.FUN <- save_cpdata
+  dat$control$bi.mods <- control.new$bi.mods
 
   dat$nwparam <- x$nwparam
 
