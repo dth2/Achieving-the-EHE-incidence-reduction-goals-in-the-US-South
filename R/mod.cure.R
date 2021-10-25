@@ -24,7 +24,7 @@ cure_prev <- function(dat, at) {
 cure.time <- dat$param$cure.time
 cure.time.w <- dat$param$cure.time.w
 cure.time.msm <- dat$param$cure.time.msm
-prev.targ <- dat$param$prev.targ
+prev.targ <- dat$param$prev.surplus * dat$param$prev.targ
 
 
 if(at %in% cure.time){
