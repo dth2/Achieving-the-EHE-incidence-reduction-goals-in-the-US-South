@@ -25,6 +25,7 @@ param_msm(
   fixed.ART.time = c(1, 4),
   dem.cat.ART.fixed = c(0, 0, 0, 0, 0, 0, 0, 0, 0),
   dem.cat.ART.fixed.prop = c(0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95),
+  all.full.supp = TRUE,
   max.time.off.tx.full.int = 52 * 15,
   max.time.on.tx.part.int = 52 * 10,
   max.time.off.tx.part.int = 52 * 10,
