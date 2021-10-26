@@ -205,6 +205,7 @@ param_msm <- function(netstats,
                       fixed.ART.time = c(1,4),
                       dem.cat.ART.fixed = c(0,0,0,0,0,0,0,0,0),
                       dem.cat.ART.fixed.prop  = c(.95,.95,.95,.95,.95,.95,.95,.95,.95),
+                      all.full.supp = TRUE,
 
 
 #________________________________________________________________
