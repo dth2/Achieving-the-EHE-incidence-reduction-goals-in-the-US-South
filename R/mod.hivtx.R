@@ -27,6 +27,7 @@
 hivtx_msm <- function(dat, at) {
 
 
+
   # Attributes
   race <- dat$attr$race
   dem.cat <- dat$attr$dem.cat
@@ -48,6 +49,11 @@ hivtx_msm <- function(dat, at) {
   tx.halt.dur.rr <- dat$param$tx.halt.dur.rr
   tx.reinit.full.rr <- dat$param$tx.reinit.full.rr
   tx.reinit.dur.rr <- dat$param$tx.reinit.full.rr
+
+  #Intervention parameters
+  #dat$param$dem.cat.ART.fixed
+  #dat$param$fixed.ART.time
+  #dat$param$dem.cat.ART.fixed.prop
 
   # if (at == 3381) {
   #   races <- sort(unique(race))
@@ -77,13 +83,18 @@ hivtx_msm <- function(dat, at) {
       if(dat$param$dem.cat.ART.fixed[i]==1){
         prop <- dat$param$dem.cat.ART.fixed.prop[i]
         pos <- which(dem.cat == i & status == 1)
-        on.ART <- which(dem.cat == i & tx.status == 1)
-        off.ART <- which(dem.cat == i & tx.status == 0)
-        ART.naive <- which(dem.cat == i & tx.status == 0 & cuml.time.on.tx == 0)
+        on.ART <- which(dem.cat == i & tx.status == 1 & status == 1)
+        off.ART <- which(dem.cat == i & tx.status == 0 & status == 1)
+        ART.naive <- which(dem.cat == i & tx.status == 0 & cuml.time.on.tx == 0  & status == 1)
         prop.on.ART <- length(on.ART)/length(pos)
         if(prop.on.ART < prop){
           new.starts <- (prop - prop.on.ART) * length(pos)
-          new.starts <- sample(ART.naive,new.starts, replace = FALSE)
+          if(length(ART.naive) >= new.starts){
+          starts <- sample(ART.naive,new.starts, replace = FALSE)}
+          if(length(ART.naive) < new.starts & length(ART.naive) > 0){
+            starts <- sample(ART.naive,new.starts, replace = TRUE)}
+          new.starts <- unique(starts)
+
           tx.init.fixed <-c(new.starts, tx.init.fixed)
         }
 }
@@ -118,9 +129,9 @@ hivtx_msm <- function(dat, at) {
       if(dat$param$dem.cat.ART.fixed[i]==1){
         prop <- dat$param$dem.cat.ART.fixed.prop[i]
         pos <- which(dem.cat == i & status == 1)
-        on.ART <- which(dem.cat == i & tx.status == 1)
-        off.ART <- which(dem.cat == i & tx.status == 0)
-        ART.naive <- which(dem.cat == i & tx.status == 0 & cuml.time.on.tx == 0)
+        on.ART <- which(dem.cat == i & tx.status == 1 & status == 1)
+        off.ART <- which(dem.cat == i & tx.status == 0 & status == 1)
+        ART.naive <- which(dem.cat == i & tx.status == 0 & cuml.time.on.tx == 0 & status == 1)
         prop.on.ART <- length(on.ART)/length(pos)
         if(prop.on.ART > prop){
           new.halt <- (prop.on.ART - prop) * length(pos)
@@ -162,13 +173,19 @@ hivtx_msm <- function(dat, at) {
       if(dat$param$dem.cat.ART.fixed[i]==1){
         prop <- dat$param$dem.cat.ART.fixed.prop[i]
         pos <- which(dem.cat == i & status == 1)
-        on.ART <- which(dem.cat == i & tx.status == 1)
-        off.ART <- which(dem.cat == i & tx.status == 0)
-        ART.exp <- which(dem.cat == i & tx.status == 0 & cuml.time.on.tx > 0)
+        on.ART <- which(dem.cat == i & tx.status == 1 & status == 1)
+        off.ART <- which(dem.cat == i & tx.status == 0 & status == 1)
+        ART.exp <- which(dem.cat == i & tx.status == 0 & cuml.time.on.tx > 0 & status == 1)
         prop.on.ART <- length(on.ART)/length(pos)
         if(prop.on.ART < prop){
           new.starts <- (prop - prop.on.ART) * length(pos)
-          new.starts <- sample(ART.exp,new.starts, replace = FALSE)
+          if(length(ART.exp) >= new.starts){
+            starts <- sample(ART.exp,new.starts, replace = FALSE)}
+          if(length(ART.exp) < new.starts & length(ART.exp) > 0){
+            starts <- sample(ART.exp,new.starts, replace = TRUE)}
+          new.starts <- unique(starts)
+
+
           tx.init.fixed.reinit <-c(new.starts, tx.init.fixed.reinit)
         }
       }
@@ -198,7 +215,8 @@ hivtx_msm <- function(dat, at) {
 
   dat$attr$tt.traj <- tt.traj
 
-  if(length(tx.init.fixed) > 0) {dat$attr$tt.traj[tx.init.fixed] <- 1}
+  if(length(tx.init.fixed) > 0) {dat$attr$tt.traj[tx.init.fixed] <- 2}
+  if(length(tx.init.fixed.reinit) > 0) {dat$attr$tt.traj[tx.init.fixed.reinit] <- 2}
 
   dat$attr$tx.status <- tx.status
   dat$attr$cuml.time.on.tx <- cuml.time.on.tx
