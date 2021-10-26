@@ -208,7 +208,7 @@ for(i in 1:9){
 
     idsStart.temp <- NULL
     if(count > 0){
-    idsStart.temp <- sample(idsEligStart[dem.cat==i],count,FALSE)
+    idsStart.temp <- sample(idsEligStart[dem.list==i],count,FALSE)
     }
 
     if(count > 0){
