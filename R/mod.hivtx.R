@@ -215,8 +215,11 @@ hivtx_msm <- function(dat, at) {
 
   dat$attr$tt.traj <- tt.traj
 
+  #Do we want everyone in the intervention to be a full suppresor?
+  if(dat$param$all.full.supp==TRUE){
   if(length(tx.init.fixed) > 0) {dat$attr$tt.traj[tx.init.fixed] <- 2}
   if(length(tx.init.fixed.reinit) > 0) {dat$attr$tt.traj[tx.init.fixed.reinit] <- 2}
+  }
 
   dat$attr$tx.status <- tx.status
   dat$attr$cuml.time.on.tx <- cuml.time.on.tx
