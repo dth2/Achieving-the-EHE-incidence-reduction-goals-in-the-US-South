@@ -361,7 +361,10 @@ inc.targ.race = c(45.4, 22.4, 5.2),
 inc.targ.prop.msm = .71,
 linked.targ = c(.7797, .8393, .8210, .7607, .8189, .8010, .7702, .8291, .8110),
 dx.rate.100k = c(2269.2, 995.3, 264.5, 16.6, 3.2, 0.69, 26.1, 5.5, 1.4),
-
+suppressed.targ = c(.6409, .6156, .6810, .5694, .5469, .6050, .6127, .5858, .6510),
+calib.supp = FALSE,
+calib.supp.start = 2497 - 52,
+calib.supp.stop = 2497 + 52,
                       ...) {
 
   p <- get_args(formal.args = formals(sys.function()),
