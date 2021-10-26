@@ -38,6 +38,10 @@ hivtest_msm <- function(dat, at) {
   hiv.test.rate <- dat$param$hiv.test.rate
   aids.test.int <- dat$param$vl.aids.int/2
   twind.int <- dat$param$test.window.int
+  suppressed.targ <- dat$param$suppressed.targ
+  calib.supp <- dat$param$calib.supp
+  calib.supp.start <- dat$param$calib.supp.start
+  calib.supp.stop  <- dat$param$calib.supp.stop
 
   tsincelntst <- at - dat$attr$last.neg.test
   tsincelntst[is.na(tsincelntst)] <- at - dat$attr$arrival.time[is.na(tsincelntst)]
@@ -78,6 +82,7 @@ hivtest_msm <- function(dat, at) {
   dat$attr$diag.time[tstPos] <- at
   dat$attr$diag.stage[tstPos] <- stage[tstPos]
 
+
   # Summary stats
   if (at >= 52*65) {
     dat$attr$num.neg.tests[tstNeg] <- dat$attr$num.neg.tests[tstNeg] + 1
@@ -111,6 +116,33 @@ hivtest_msm <- function(dat, at) {
   dat$epi$newDx140[at] <- length(intersect(tstPos, which(diag.time - inf.time <= 140/7)))
   dat$epi$newDx200[at] <- length(intersect(tstPos, which(diag.time - inf.time <= 200/7)))
   dat$epi$newDx2y[at] <- length(intersect(tstPos, which(diag.time - inf.time > 104)))
+
+
+
+  #calibration
+  if(calib.supp==TRUE & calib.supp.start < at & calib.supp.stop > at){
+
+    dem.list<-dat$attr$dem.cat[tstPos]
+    cur.sup <- c(dat$epi$cc.vsupp.B.msm[at-1],dat$epi$cc.vsupp.H.msm[at-1],dat$epi$cc.vsupp.W.msm[at-1],
+                 dat$epi$cc.vsupp.B.msm[at-1],dat$epi$cc.vsupp.H.msm[at-1],dat$epi$cc.vsupp.W.msm[at-1],
+                 dat$epi$cc.vsupp.B.msm[at-1],dat$epi$cc.vsupp.H.msm[at-1],dat$epi$cc.vsupp.W.msm[at-1])
+
+    for(i in 1:9){
+      if(cur.sup[i] < suppressed.targ[i]){
+        x<-tstPos[dem.list==i]
+        dat$attr$tt.traj[x]<-2
+      }
+
+      if(cur.sup[i] > suppressed.targ[i]){
+        x<-tstPos[dem.list==i]
+        dat$attr$tt.traj[x]<-1
+      }
+
+    }
+
+
+
+  }
 
   return(dat)
 }
