@@ -264,7 +264,7 @@ prevalence_msm <- function(dat, at) {
   dat$epi$cc.linked1m.B.msm[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2200 & dem.cat == 1, na.rm = TRUE) /
                                     sum(diag.status == 1 & diag.time >= 2200 & dem.cat == 1, na.rm = TRUE)
   dat$epi$cc.linked1m.H.msm[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2200 & dem.cat == 2, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2200 & dem.cat == 2200, na.rm = TRUE)
+                                    sum(diag.status == 1 & diag.time >= 2200 & dem.cat == 2, na.rm = TRUE)
   dat$epi$cc.linked1m.W.msm[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2200 & dem.cat == 3, na.rm = TRUE) /
                                     sum(diag.status == 1 & diag.time >= 2200 & dem.cat == 3, na.rm = TRUE)
   dat$epi$cc.linked1m.B.m.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2200 & dem.cat == 4, na.rm = TRUE) /
