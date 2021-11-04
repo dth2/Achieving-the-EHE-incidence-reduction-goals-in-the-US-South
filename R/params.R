@@ -366,6 +366,9 @@ suppressed.targ = c(.6409, .6156, .6810, .5694, .5469, .6050, .6127, .5858, .651
 calib.supp = FALSE,
 calib.supp.start = 2497 - 104,
 calib.supp.stop = 2497 + 52,
+calib.link = FALSE,
+calib.link.start = 2497 - 104,
+calib.link.stop = 2497 + 52,
                       ...) {
 
   p <- get_args(formal.args = formals(sys.function()),
