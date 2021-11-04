@@ -124,8 +124,8 @@ hivtest_msm <- function(dat, at) {
 
     dem.list<-dat$attr$dem.cat[tstPos]
     cur.sup <- c(dat$epi$cc.vsupp.B.msm[at-1],dat$epi$cc.vsupp.H.msm[at-1],dat$epi$cc.vsupp.W.msm[at-1],
-                 dat$epi$cc.vsupp.B.msm[at-1],dat$epi$cc.vsupp.H.msm[at-1],dat$epi$cc.vsupp.W.msm[at-1],
-                 dat$epi$cc.vsupp.B.msm[at-1],dat$epi$cc.vsupp.H.msm[at-1],dat$epi$cc.vsupp.W.msm[at-1])
+                 dat$epi$cc.vsupp.B.m.het[at-1],dat$epi$cc.vsupp.H.m.het[at-1],dat$epi$cc.vsupp.W.m.het[at-1],
+                 dat$epi$cc.vsupp.B.f.het[at-1],dat$epi$cc.vsupp.H.f.het[at-1],dat$epi$cc.vsupp.W.f.het[at-1])
 
     for(i in 1:9){
       if(cur.sup[i] < suppressed.targ[i]){
