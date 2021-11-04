@@ -131,6 +131,9 @@ param_msm(
   calib.supp = FALSE,
   calib.supp.start = 2497 - 104,
   calib.supp.stop = 2497 + 52,
+  calib.link = FALSE,
+  calib.link.start = 2497 - 104,
+  calib.link.stop = 2497 + 52,
   ...
 )
 }
