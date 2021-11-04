@@ -189,6 +189,10 @@ prevalence_msm <- function(dat, at) {
                               sum(status == 1 & inf.time >= 2 & dem.cat == 9, na.rm = TRUE)
 
   ##DX.rate
+
+  dat$epi$cc.dx.r.msm[at] <- (sum(diag.time <= at & diag.time >= at-52 & msm == 1, na.rm = TRUE) /
+                                  sum(msm == 1, na.rm = TRUE)) * 100000
+
   dat$epi$cc.dx.r.B.msm[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 1, na.rm = TRUE) /
                                   sum(dem.cat == 1, na.rm = TRUE)) * 100000
   dat$epi$cc.dx.r.H.msm[at] <- (sum(diag.time <= at & diag.time >= at-52 & dem.cat == 2, na.rm = TRUE) /
