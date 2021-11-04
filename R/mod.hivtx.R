@@ -49,6 +49,10 @@ hivtx_msm <- function(dat, at) {
   tx.halt.dur.rr <- dat$param$tx.halt.dur.rr
   tx.reinit.full.rr <- dat$param$tx.reinit.full.rr
   tx.reinit.dur.rr <- dat$param$tx.reinit.full.rr
+  linked.targ <- dat$param$linked.targ
+  calib.link <- dat$param$calib.link
+  calib.link.start <- dat$param$calib.link.start
+  calib.link.stop <- dat$param$calib.link.stop
 
   #Intervention parameters
   #dat$param$dem.cat.ART.fixed
@@ -72,6 +76,31 @@ hivtx_msm <- function(dat, at) {
                         diag.status == 1 &
                         cuml.time.on.tx == 0)
   rates <- tx.init.prob[dem.cat[tx.init.elig]]
+
+
+  if(calib.link==TRUE & calib.link.start < at & calib.link.stop > at){
+
+    dem.list<-dat$attr$dem.cat[tx.init.elig]
+    cur.linked <- c(dat$epi$cc.linked1m.B.msm[at-1],dat$epi$cc.linked1m.H.msm[at-1],dat$epi$cc.linked1m.W.msm[at-1],
+                 dat$epi$cc.linked1m.B.m.het[at-1],dat$epi$cc.linked1m.H.m.het[at-1],dat$epi$cc.linked1m.W.m.het[at-1],
+                 dat$epi$cc.linked1m.B.f.het[at-1],dat$epi$cc.linked1m.H.f.het[at-1],dat$epi$cc.linked1m.W.f.het[at-1])
+
+    for(i in 1:9){
+      if(cur.linked[i] < linked.targ[i]){
+        x <- which(dem.list==i)
+        rates[x]<-.8
+      }
+
+      if(cur.linked[i] > linked.targ[i]){
+        x <- which(dem.list==i)
+        rates[x]<-.05
+      }
+
+    }
+
+  }
+
+
   tx.init <- tx.init.elig[rbinom(length(tx.init.elig), 1, rates) == 1]
 
   ## Initiation for fixed ART coverage
