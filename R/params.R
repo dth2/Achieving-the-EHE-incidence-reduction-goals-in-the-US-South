@@ -204,8 +204,31 @@ param_msm <- function(netstats,
                       #after ART.time 2 selection is from ART experienced to fix the coverage
                       fixed.ART.time = c(1,4),
                       dem.cat.ART.fixed = c(0,0,0,0,0,0,0,0,0),
-                      dem.cat.ART.fixed.prop  = c(.95,.95,.95,.95,.95,.95,.95,.95,.95),
+                      dem.cat.ART.fixed.prop  = c(0,0,0,0,0,0,0,0,0),
                       all.full.supp = TRUE,
+
+
+                      art.int.1 = 0,
+                      art.int.2 = 0,
+                      art.int.3 = 0,
+                      art.int.4 = 0,
+                      art.int.5 = 0,
+                      art.int.6 = 0,
+                      art.int.7 = 0,
+                      art.int.8 = 0,
+                      art.int.9 = 0,
+                      art.int.cov = 0,
+
+                      prep.int.1 = 0,
+                      prep.int.2 = 0,
+                      prep.int.3 = 0,
+                      prep.int.4 = 0,
+                      prep.int.5 = 0,
+                      prep.int.6 = 0,
+                      prep.int.7 = 0,
+                      prep.int.8 = 0,
+                      prep.int.9 = 0,
+                      prep.int.cov = 0,
 
 
 #________________________________________________________________
@@ -337,8 +360,8 @@ param_msm <- function(netstats,
                       #after prep.time 1 selection is from ART naive to fix the coverage
                       #after prep.time 2 selection is from ART experienced to fix the coverage
                       fixed.prep.time = c(1,4),
-                      dem.cat.prep.fixed = c(1,1,0,1,0,1,1,1,0),
-                      dem.cat.prep.fixed.prop  = c(.5,.5,.5,.5,.5,.5,.5,.5,.5),
+                      dem.cat.prep.fixed = c(0,0,0,0,0,0,0,0,0),
+                      dem.cat.prep.fixed.prop  = c(0,0,0,0,0,0,0,0,0),
 
 
 #______________________________________________________________
