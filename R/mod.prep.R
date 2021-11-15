@@ -55,8 +55,10 @@ prep_msm <- function(dat, at) {
   prep.discont.rate <- dat$param$prep.discont.rate
 
   prep.base.cov <- dat$param$prep.base.cov
-  dem.cat.prep.fixed <- dat$param$dem.cat.prep.fixed
-  dem.cat.prep.fixed.prop <- dat$param$dem.cat.prep.fixed.prop
+  dem.cat.prep.fixed <- c(dat$param$prep.int.1,dat$param$prep.int.2,dat$param$prep.int.3,
+                          dat$param$prep.int.4,dat$param$prep.int.5,dat$param$prep.int.6,
+                          dat$param$prep.int.7,dat$param$prep.int.8,dat$param$prep.int.9)
+  dem.cat.prep.fixed.prop <- dem.cat.prep.fixed * dat$param$prep.int.cov
 
 #  prep.start.prob = 0.2,
 #  prep.adhr.dist = c(0.089, 0.127, 0.784),
