@@ -55,9 +55,10 @@ hivtx_msm <- function(dat, at) {
   calib.link.stop <- dat$param$calib.link.stop
 
   #Intervention parameters
-  #dat$param$dem.cat.ART.fixed
-  #dat$param$fixed.ART.time
-  #dat$param$dem.cat.ART.fixed.prop
+  dem.cat.ART.fixed <- c(dat$param$art.int.1, dat$param$art.int.2, dat$param$art.int.3,
+                         dat$param$art.int.4, dat$param$art.int.5, dat$param$art.int.6,
+                         dat$param$art.int.7, dat$param$art.int.8, dat$param$art.int.9)
+  dem.cat.ART.fixed.prop <- dem.cat.ART.fixed * dat$param$art.int.cov
 
   # if (at == 3381) {
   #   races <- sort(unique(race))
@@ -109,8 +110,8 @@ hivtx_msm <- function(dat, at) {
 
     for(i in 1:9){
 
-      if(dat$param$dem.cat.ART.fixed[i]==1){
-        prop <- dat$param$dem.cat.ART.fixed.prop[i]
+      if(dem.cat.ART.fixed[i]==1){
+        prop <- dem.cat.ART.fixed.prop[i]
         pos <- which(dem.cat == i & status == 1)
         on.ART <- which(dem.cat == i & tx.status == 1 & status == 1)
         off.ART <- which(dem.cat == i & tx.status == 0 & status == 1)
@@ -155,8 +156,8 @@ hivtx_msm <- function(dat, at) {
 
     for(i in 1:9){
 
-      if(dat$param$dem.cat.ART.fixed[i]==1){
-        prop <- dat$param$dem.cat.ART.fixed.prop[i]
+      if(dem.cat.ART.fixed[i]==1){
+        prop <- dem.cat.ART.fixed.prop[i]
         pos <- which(dem.cat == i & status == 1)
         on.ART <- which(dem.cat == i & tx.status == 1 & status == 1)
         off.ART <- which(dem.cat == i & tx.status == 0 & status == 1)
@@ -199,8 +200,8 @@ hivtx_msm <- function(dat, at) {
 
     for(i in 1:9){
 
-      if(dat$param$dem.cat.ART.fixed[i]==1){
-        prop <- dat$param$dem.cat.ART.fixed.prop[i]
+      if(dem.cat.ART.fixed[i]==1){
+        prop <- dem.cat.ART.fixed.prop[i]
         pos <- which(dem.cat == i & status == 1)
         on.ART <- which(dem.cat == i & tx.status == 1 & status == 1)
         off.ART <- which(dem.cat == i & tx.status == 0 & status == 1)
