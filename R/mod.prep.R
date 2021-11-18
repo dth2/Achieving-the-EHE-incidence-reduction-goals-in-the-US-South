@@ -53,6 +53,7 @@ prep_msm <- function(dat, at) {
   prep.require.lnt <- dat$param$prep.require.lnt
   prep.risk.reassess.method <- dat$param$prep.risk.reassess.method
   prep.discont.rate <- dat$param$prep.discont.rate
+  prep.age.18 <- dat$param$prep.age.18
 
   prep.base.cov <- dat$param$prep.base.cov
   dem.cat.prep.fixed <- c(dat$param$prep.int.1,dat$param$prep.int.2,dat$param$prep.int.3,
@@ -97,7 +98,10 @@ prep_msm <- function(dat, at) {
 
   # Indications in window
   idsIndic <- which(ind1 >= twind | ind2 >= twind | ind3 >= twind)
-  base.cond.yes <- which(active == 1 & diag.status == 0)
+  if(prep.age.18==TRUE){
+  base.cond.yes <- which(active == 1 & diag.status == 0 & age >= 18)}
+  if(prep.age.18==FALSE){
+    base.cond.yes <- which(active == 1 & diag.status == 0)}
   idsIndic <- intersect(idsIndic, base.cond.yes)
 
   # Set eligibility to 1 if indications
