@@ -202,7 +202,7 @@ param_msm <- function(netstats,
                       fixed.ART = FALSE,
                       #after ART.time 1 selection is from ART naive to fix the coverage
                       #after ART.time 2 selection is from ART experienced to fix the coverage
-                      fixed.ART.time = c(1,4),
+                      fixed.ART.time = c(2626,2631),
                       dem.cat.ART.fixed = c(0,0,0,0,0,0,0,0,0),
                       dem.cat.ART.fixed.prop  = c(0,0,0,0,0,0,0,0,0),
                       all.full.supp = TRUE,
@@ -357,11 +357,12 @@ param_msm <- function(netstats,
                       prep.risk.reassess.method = "year",
                       prep.require.lnt = FALSE,
                       prep.fixed = FALSE,
-                      #after prep.time 1 selection is from ART naive to fix the coverage
-                      #after prep.time 2 selection is from ART experienced to fix the coverage
-                      fixed.prep.time = c(1,4),
+                      #after prep.time 1 selection is from PREP naive to fix the coverage
+                      #after prep.time 2 selection is from PREP experienced to fix the coverage
+                      fixed.prep.time = c(2626,2631),
                       dem.cat.prep.fixed = c(0,0,0,0,0,0,0,0,0),
                       dem.cat.prep.fixed.prop  = c(0,0,0,0,0,0,0,0,0),
+                      prep.age.18 = TRUE,
 
 
 #______________________________________________________________
