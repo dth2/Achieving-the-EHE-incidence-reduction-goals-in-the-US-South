@@ -159,6 +159,16 @@ prevalence_msm <- function(dat, at) {
   dat$epi$i.prop.MSM[at] <-sum(dat$epi$incid.MSM[max(1,(at-52)):at], na.rm = TRUE) / sum(dat$epi$incid[max(1,(at-52)):at], na.rm = TRUE)
   dat$epi$ir100K.adol[at]  <- ((sum(dat$epi$incid.adol[max(1,(at-52)):at], na.rm = TRUE) / sum(age < 18, na.rm = TRUE)))*100000
 
+  dat$epi$ir100K.B.msm[at]  <- ((sum(dat$epi$incid.B.msm[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 1, na.rm = TRUE)))*100000
+  dat$epi$ir100K.H.msm[at]  <- ((sum(dat$epi$incid.H.msm[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 2, na.rm = TRUE)))*100000
+  dat$epi$ir100K.W.msm[at]  <- ((sum(dat$epi$incid.W.msm[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 3, na.rm = TRUE)))*100000
+  dat$epi$ir100K.B.m.het[at]  <- ((sum(dat$epi$incid.B.m.het[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 4, na.rm = TRUE)))*100000
+  dat$epi$ir100K.H.m.het[at]  <- ((sum(dat$epi$incid.H.m.het[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 5, na.rm = TRUE)))*100000
+  dat$epi$ir100K.W.m.het[at]  <- ((sum(dat$epi$incid.W.m.het[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 6, na.rm = TRUE)))*100000
+  dat$epi$ir100K.B.f.het[at]  <- ((sum(dat$epi$incid.B.f.het[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 7, na.rm = TRUE)))*100000
+  dat$epi$ir100K.H.f.het[at]  <- ((sum(dat$epi$incid.H.f.het[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 8, na.rm = TRUE)))*100000
+  dat$epi$ir100K.W.f.het[at]  <- ((sum(dat$epi$incid.W.f.het[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 9, na.rm = TRUE)))*100000
+
   # Care continuum stats (primary)
   dat$epi$cc.dx[at] <- sum(diag.status == 1 & inf.time >= 2, na.rm = TRUE) /
                        sum(status == 1 & inf.time >= 2, na.rm = TRUE)
@@ -265,24 +275,24 @@ prevalence_msm <- function(dat, at) {
   dat$epi$cc.linked1m.W[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2 & race == 3, na.rm = TRUE) /
                                sum(diag.status == 1 & diag.time >= 2 & race == 3, na.rm = TRUE)
 
-  dat$epi$cc.linked1m.B.msm[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2600 & dem.cat == 1, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2600 & dem.cat == 1, na.rm = TRUE)
-  dat$epi$cc.linked1m.H.msm[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2600 & dem.cat == 2, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2600 & dem.cat == 2, na.rm = TRUE)
-  dat$epi$cc.linked1m.W.msm[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2600 & dem.cat == 3, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2600 & dem.cat == 3, na.rm = TRUE)
-  dat$epi$cc.linked1m.B.m.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2600 & dem.cat == 4, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2600 & dem.cat == 4, na.rm = TRUE)
-  dat$epi$cc.linked1m.H.m.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2600 & dem.cat == 5, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2600 & dem.cat == 5, na.rm = TRUE)
-  dat$epi$cc.linked1m.W.m.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2600 & dem.cat == 6, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2600 & dem.cat == 6, na.rm = TRUE)
-  dat$epi$cc.linked1m.B.f.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2600 & dem.cat == 7, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2600 & dem.cat == 7, na.rm = TRUE)
-  dat$epi$cc.linked1m.H.f.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2600 & dem.cat == 8, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2600 & dem.cat == 8, na.rm = TRUE)
-  dat$epi$cc.linked1m.W.f.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2600 & dem.cat == 9, na.rm = TRUE) /
-                                    sum(diag.status == 1 & diag.time >= 2600 & dem.cat == 9, na.rm = TRUE)
+  dat$epi$cc.linked1m.B.msm[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2625 & dem.cat == 1, na.rm = TRUE) /
+                                    sum(diag.status == 1 & diag.time >= 2625 & dem.cat == 1, na.rm = TRUE)
+  dat$epi$cc.linked1m.H.msm[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2625 & dem.cat == 2, na.rm = TRUE) /
+                                    sum(diag.status == 1 & diag.time >= 2625 & dem.cat == 2, na.rm = TRUE)
+  dat$epi$cc.linked1m.W.msm[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2625 & dem.cat == 3, na.rm = TRUE) /
+                                    sum(diag.status == 1 & diag.time >= 2625 & dem.cat == 3, na.rm = TRUE)
+  dat$epi$cc.linked1m.B.m.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2625 & dem.cat == 4, na.rm = TRUE) /
+                                    sum(diag.status == 1 & diag.time >= 2625 & dem.cat == 4, na.rm = TRUE)
+  dat$epi$cc.linked1m.H.m.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2625 & dem.cat == 5, na.rm = TRUE) /
+                                    sum(diag.status == 1 & diag.time >= 2625 & dem.cat == 5, na.rm = TRUE)
+  dat$epi$cc.linked1m.W.m.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2625 & dem.cat == 6, na.rm = TRUE) /
+                                    sum(diag.status == 1 & diag.time >= 2625 & dem.cat == 6, na.rm = TRUE)
+  dat$epi$cc.linked1m.B.f.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2625 & dem.cat == 7, na.rm = TRUE) /
+                                    sum(diag.status == 1 & diag.time >= 2625 & dem.cat == 7, na.rm = TRUE)
+  dat$epi$cc.linked1m.H.f.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2625 & dem.cat == 8, na.rm = TRUE) /
+                                    sum(diag.status == 1 & diag.time >= 2625 & dem.cat == 8, na.rm = TRUE)
+  dat$epi$cc.linked1m.W.f.het[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 2625 & dem.cat == 9, na.rm = TRUE) /
+                                    sum(diag.status == 1 & diag.time >= 2625 & dem.cat == 9, na.rm = TRUE)
 
 
 #  dat$epi$cc.linked1m.int[at] <- sum(tx.init.time - diag.time <= 4 & diag.time >= 3380, na.rm = TRUE) /
