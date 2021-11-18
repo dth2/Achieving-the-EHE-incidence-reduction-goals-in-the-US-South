@@ -87,12 +87,12 @@ hivtx_msm <- function(dat, at) {
                  dat$epi$cc.linked1m.B.f.het[at-1],dat$epi$cc.linked1m.H.f.het[at-1],dat$epi$cc.linked1m.W.f.het[at-1])
 
     for(i in 1:9){
-      if(cur.linked[i] < linked.targ[i]){
+      if(cur.linked[i] < linked.targ[i] & is.na(cur.linked[i])==FALSE){
         x <- which(dem.list==i)
         rates[x]<-.8
       }
 
-      if(cur.linked[i] > linked.targ[i]){
+      if(cur.linked[i] > linked.targ[i] & is.na(cur.linked[i])==FALSE){
         x <- which(dem.list==i)
         rates[x]<-.05
       }
