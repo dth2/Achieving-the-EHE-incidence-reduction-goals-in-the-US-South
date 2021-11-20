@@ -80,10 +80,9 @@ prep_msm <- function(dat, at) {
 
   # Indications -------------------------------------------------------------
 
-  ind1 <- dat$attr$prep.ind.ui.mono
-  # ind2 <- dat$attr$prep.ind.uai.nmain
-  ind2 <- dat$attr$prep.ind.ui.conc
-  ind3 <- dat$attr$prep.ind.sti
+  ind1 <-  dat$attr$prep.ind.ui.mono.msm
+  ind2 <- dat$attr$prep.ind.ui.nmain.het
+  ind3 <- dat$attr$prep.ind.ui.conc
 
 
 
@@ -290,6 +289,7 @@ riskhist_msm <- function(dat, at) {
   uGC.tx <- dat$attr$uGC.tx
   rCT.tx <- dat$attr$rCT.tx
   uCT.tx <- dat$attr$uCT.tx
+  msm <- dat$attr$msm
 
   ## Parameters
 
@@ -311,6 +311,9 @@ riskhist_msm <- function(dat, at) {
     dat$attr$prep.ind.ui.mono <- rep(NA, n)
     dat$attr$prep.ind.ui.nmain <- rep(NA, n)
     dat$attr$prep.ind.sti <- rep(NA, n)
+
+    dat$attr$prep.ind.ui.mono.msm <- rep(NA, n)
+    dat$attr$prep.ind.ui.nmain.het <- rep(NA, n)
   }
   if (is.null(dat$attr$prep.ind.ui.conc)) {
     dat$attr$prep.ind.ui.conc <- rep(NA, n)
@@ -333,7 +336,8 @@ riskhist_msm <- function(dat, at) {
 
   # Monogamous partnerships: 1-sided
   tot.deg <- main.deg.het + casl.deg.het + inst.deg.het + main.deg.msm + casl.deg.msm + inst.deg.msm
-  ui.mono1 <- intersect(which(tot.deg == 1), ui.any)
+  ui.mono1 <- intersect(which(tot.deg == 1), which(main.deg.het==0), ui.any)
+  ui.mono1.msm <- intersect(which(tot.deg == 1), which(msm==1), ui.any)
 
   # "Negative" partnerships
   tneg <- unique(c(el2$p1[el2$st1 == 0], el2$p2[el2$st1 == 0]))
@@ -347,6 +351,12 @@ riskhist_msm <- function(dat, at) {
   not.tested.6mo <- since.test[part.id1] > (180/7)
   part.not.tested.6mo <- ui.mono1.neg[which(not.tested.6mo == TRUE)]
   dat$attr$prep.ind.ui.mono[part.not.tested.6mo] <- at
+
+  ui.mono1.neg.msm <- intersect(ui.mono1.msm, all.neg)
+  part.id1.msm <- c(el2[el2$p1 %in% ui.mono1.neg.msm, 2], el2[el2$p2 %in% ui.mono1.neg.msm, 1])
+  not.tested.6mo.msm <- since.test[part.id1.msm] > (180/7)
+  part.not.tested.6mo.msm <- ui.mono1.neg.msm[which(not.tested.6mo.msm == TRUE)]
+  dat$attr$prep.ind.ui.mono.msm[part.not.tested.6mo.msm] <- at
 
   ## Condition 2a: UI + concurrency
   el2.ui <- el2[el2$ui > 0, ]
@@ -364,6 +374,7 @@ riskhist_msm <- function(dat, at) {
   ui.nmain <- c(ui.nmain.het, ui.nmain.msm)
 
   dat$attr$prep.ind.ui.nmain[ui.nmain] <- at
+  dat$attr$prep.ind.ui.nmain.het[ui.nmain.het] <- at
 
   ## Condition 4, any STI diagnosis
   idsDx <- which(rGC.tx == 1 | uGC.tx == 1 | rCT.tx == 1 | uCT.tx == 1)
