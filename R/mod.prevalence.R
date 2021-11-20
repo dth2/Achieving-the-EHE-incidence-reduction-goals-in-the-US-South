@@ -168,6 +168,7 @@ prevalence_msm <- function(dat, at) {
   dat$epi$ir100K.B.f.het[at]  <- ((sum(dat$epi$incid.B.f.het[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 7, na.rm = TRUE)))*100000
   dat$epi$ir100K.H.f.het[at]  <- ((sum(dat$epi$incid.H.f.het[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 8, na.rm = TRUE)))*100000
   dat$epi$ir100K.W.f.het[at]  <- ((sum(dat$epi$incid.W.f.het[max(1,(at-52)):at], na.rm = TRUE) / sum(dem.cat == 9, na.rm = TRUE)))*100000
+  dat$epi$ir100K.adol[at]  <- ((sum(dat$epi$incid.adol[max(1,(at-52)):at], na.rm = TRUE) / sum(age < 18, na.rm = TRUE)))*100000
 
   # Care continuum stats (primary)
   dat$epi$cc.dx[at] <- sum(diag.status == 1 & inf.time >= 2, na.rm = TRUE) /
