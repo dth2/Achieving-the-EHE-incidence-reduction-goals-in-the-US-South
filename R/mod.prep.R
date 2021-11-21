@@ -336,8 +336,8 @@ riskhist_msm <- function(dat, at) {
 
   # Monogamous partnerships: 1-sided
   tot.deg <- main.deg.het + casl.deg.het + inst.deg.het + main.deg.msm + casl.deg.msm + inst.deg.msm
-  ui.mono1 <- intersect(which(tot.deg == 1), which(main.deg.het==0), ui.any)
-  ui.mono1.msm <- intersect(which(tot.deg == 1), which(msm==1), ui.any)
+  ui.mono1 <- intersect(which(tot.deg == 1), ui.any)
+  ui.mono1.msm <- intersect(ui.mono1, which(msm==1))
 
   # "Negative" partnerships
   tneg <- unique(c(el2$p1[el2$st1 == 0], el2$p2[el2$st1 == 0]))
