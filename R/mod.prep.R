@@ -319,6 +319,11 @@ riskhist_msm <- function(dat, at) {
     dat$attr$prep.ind.ui.conc <- rep(NA, n)
   }
 
+  if (is.null(dat$attr$prep.ind.ui.mono.msm)) {
+    dat$attr$prep.ind.ui.mono.msm <- rep(NA, n)
+  }
+
+
   ## Degree ##
   main.deg.het <- get_degree(dat$el[[1]])
   casl.deg.het <- get_degree(dat$el[[2]])
