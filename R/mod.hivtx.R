@@ -111,6 +111,7 @@ hivtx_msm <- function(dat, at) {
     for(i in 1:9){
 
       if(dem.cat.ART.fixed[i]==1){
+        starts<-NULL
         prop <- dem.cat.ART.fixed.prop[i]
         pos <- which(dem.cat == i & status == 1)
         on.ART <- which(dem.cat == i & tx.status == 1 & status == 1)
@@ -196,11 +197,13 @@ hivtx_msm <- function(dat, at) {
 
   ## Restarting with fixed coverage
   tx.init.fixed.reinit <- NULL
+
   if(dat$param$fixed.ART == TRUE & at >= dat$param$fixed.ART.time[2]){
 
     for(i in 1:9){
 
       if(dem.cat.ART.fixed[i]==1){
+        starts<-NULL
         prop <- dem.cat.ART.fixed.prop[i]
         pos <- which(dem.cat == i & status == 1)
         on.ART <- which(dem.cat == i & tx.status == 1 & status == 1)
