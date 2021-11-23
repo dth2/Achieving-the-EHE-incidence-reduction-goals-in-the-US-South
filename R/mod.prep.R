@@ -191,6 +191,7 @@ prep_msm <- function(dat, at) {
         count <- count - length(on.prep)
       }
 
+      count <- max(0,count)
       if (count > 0){
       idsStart.temp <- sample(idsEligStart[dem.list==i],count,FALSE)
       idsStart <- c(idsStart,idsStart.temp)
@@ -212,6 +213,7 @@ for(i in 1:9){
     count <- count - length(on.prep)
 
     idsStart.temp <- NULL
+    count <- max(0,count)
     if(count > 0){
     idsStart.temp <- sample(idsEligStart[dem.list==i],count,FALSE)
     }
