@@ -201,6 +201,7 @@ for(i in 1:9){
     idsStart.temp <- NULL
     count <- round(max(0,count))
     if(count > 0){
+      count<-min(length(idsEligStart[dem.list==i]), count)
     idsStart.temp <- sample(idsEligStart[dem.list==i],count,FALSE)
     }
 
