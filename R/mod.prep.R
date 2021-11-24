@@ -61,21 +61,6 @@ prep_msm <- function(dat, at) {
                           dat$param$prep.int.7,dat$param$prep.int.8,dat$param$prep.int.9)
   dem.cat.prep.fixed.prop <- dem.cat.prep.fixed * dat$param$prep.int.cov
 
-#  prep.start.prob = 0.2,
-#  prep.adhr.dist = c(0.089, 0.127, 0.784),
-#  prep.adhr.hr = c(0.69, 0.19, 0.01),
-#  prep.discont.rate = 1 - (2^(-1/(224.4237/7))),
-#  prep.tst.int = 90/7,
-#  prep.risk.int = 182/7,
-#  prep.sti.screen.int = 182/7,
-#  prep.sti.prob.tx = 1,
-#  prep.risk.reassess.method = "year",
-#  prep.fixed = TRUE,
-  #after prep.time 1 selection is from ART naive to fix the coverage
-  #after prep.time 2 selection is from ART experienced to fix the coverage
-#  fixed.prep.time = c(1,4),
-#  dem.cat.prep.fixed = c(0,0,0,0,0,0,1,1,0),
-#  dem.cat.prep.fixed.prop  = c(.95,.95,.95,.95,.95,.95,.95,.95,.95),
 
 
   # Indications -------------------------------------------------------------
@@ -170,6 +155,7 @@ prep_msm <- function(dat, at) {
   prepElig[idsEligStart] <- 1
 
 
+
   #Baseline
   idsStart <-NULL
 
@@ -191,7 +177,7 @@ prep_msm <- function(dat, at) {
         count <- count - length(on.prep)
       }
 
-      count <- max(0,count)
+      count <- round(max(0,count))
       if (count > 0){
       idsStart.temp <- sample(idsEligStart[dem.list==i],count,FALSE)
       idsStart <- c(idsStart,idsStart.temp)
@@ -207,13 +193,13 @@ for(i in 1:9){
     dem.list<- dem.cat[idsEligStart]
     cov <- dem.cat.prep.fixed.prop[i]
 
-    count <- sum(dem.cat==i &  prepElig == 1) * cov
+    count <- max(0,length(which(dem.cat==i & prepElig ==1)))*cov
     #subtract of those on PrEP
     on.prep <- which(dat$attr$dem.cat==i & dat$attr$prepStat == 1)
     count <- count - length(on.prep)
 
     idsStart.temp <- NULL
-    count <- max(0,count)
+    count <- round(max(0,count))
     if(count > 0){
     idsStart.temp <- sample(idsEligStart[dem.list==i],count,FALSE)
     }
