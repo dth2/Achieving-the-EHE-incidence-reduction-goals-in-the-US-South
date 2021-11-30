@@ -122,7 +122,7 @@ hivtx_msm <- function(dat, at) {
           new.starts <- (prop - prop.on.ART) * length(pos)
           if(length(ART.naive) >= new.starts){
           starts <- sample(ART.naive,new.starts, replace = FALSE)}
-          if(length(ART.naive) < new.starts & length(ART.naive) > 0){
+          if(length(ART.naive) < new.starts & length(ART.naive) > 1){
             starts <- sample(ART.naive,new.starts, replace = TRUE)}
           new.starts <- unique(starts)
 
@@ -158,6 +158,7 @@ hivtx_msm <- function(dat, at) {
     for(i in 1:9){
 
       if(dem.cat.ART.fixed[i]==1){
+        new.halt<-NULL
         prop <- dem.cat.ART.fixed.prop[i]
         pos <- which(dem.cat == i & status == 1)
         on.ART <- which(dem.cat == i & tx.status == 1 & status == 1)
@@ -214,7 +215,7 @@ hivtx_msm <- function(dat, at) {
           new.starts <- (prop - prop.on.ART) * length(pos)
           if(length(ART.exp) >= new.starts){
             starts <- sample(ART.exp,new.starts, replace = FALSE)}
-          if(length(ART.exp) < new.starts & length(ART.exp) > 0){
+          if(length(ART.exp) < new.starts & length(ART.exp) > 1){
             starts <- sample(ART.exp,new.starts, replace = TRUE)}
           new.starts <- unique(starts)
 
