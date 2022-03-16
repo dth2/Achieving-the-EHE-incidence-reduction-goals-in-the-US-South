@@ -598,6 +598,8 @@ prevalence_msm <- function(dat, at) {
   dat$epi$prepElig.B.f.het[at] <- sum(prepElig == 1 & dem.cat == 7, na.rm = TRUE)
   dat$epi$prepElig.H.f.het[at] <- sum(prepElig == 1 & dem.cat == 8, na.rm = TRUE)
   dat$epi$prepElig.W.f.het[at] <- sum(prepElig == 1 & dem.cat == 9, na.rm = TRUE)
+  dat$epi$prepElig.adol[at] <- sum(prepElig == 1 & age < 18, na.rm = TRUE)
+  dat$epi$prepElig.adol.pct[at] <- dat$epi$prepElig.adol[at] / sum(age < 18, na.rm = TRUE)
 
   dat$epi$prepCurr[at] <- sum(prepStat == 1, na.rm = TRUE)
   dat$epi$prepCurr.B[at] <- sum(prepStat == 1 & race == 1, na.rm = TRUE)
