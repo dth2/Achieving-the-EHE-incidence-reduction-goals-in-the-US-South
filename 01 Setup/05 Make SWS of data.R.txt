@@ -1,0 +1,422 @@
+# This program is intended to run in R. The scipt takes the NSFG data and
+# 1 imputes observations for individuals older than 45 from observations ages 38-44.
+# 2 Samples the observarion to make a self weighted sample of individuals 15-65 to represent the heterosexual individuals in our simulation of 500K people.
+# 3 Sample is matched to the demographic composition of the US south in 2018. 
+# 4 sampling is stochastic so it may need to be repeated until a realization is cretaed that matches the census.
+# 5 Adds terms for partnership type, degree, act rates, placeholder terms to match the MSM specific data impoted from ARTnet.
+
+
+# Inputs: The merged males and female data files NSFGsexnet2011_17m_reduced.sav and NSFGsexnet2011_17f_reduced.sav
+# converted to Rdata files.
+# output the wide respondent (d_het.rda) and long partnership data (l_het.rda) 
+
+library(egonet)
+library(EpiModel)
+library(tidyverse)
+
+setwd("~/concept30_south/NSFG")
+load("~/concept30_south/NSFG/NSFGsexnet2011_17merged_reduced.rdata")
+
+#Reset age for 45 year olds to 44 which is the upper limit of the survey
+old<-which(NSFGsexnet2011_17merged_reduced$age==45)
+NSFGsexnet2011_17merged_reduced$age[old]<-44
+
+
+#Split out the data to males and females
+m <- which(NSFGsexnet2011_17merged_reduced$sex == 1)
+f <- which(NSFGsexnet2011_17merged_reduced$sex == 2)
+
+males <- NSFGsexnet2011_17merged_reduced[m,]
+females <- NSFGsexnet2011_17merged_reduced[f,]
+
+##ADD role class
+males$role.class <- rep(1,length(males$age))
+females$role.class <- rep(2,length(females$age))
+
+## we want the pop to go to 65 so we are going to use the 38-44 year-olds as proxies.
+
+  ng<-which(males$age>=38)
+  cases<-males[ng,]
+
+  cases$age <- cases$age+7
+  cases$page1 <- cases$page1+7
+  cases$page2 <- cases$page1+7
+  cases$page3 <- cases$page1+7
+  males<-rbind(males,cases)
+
+  cases$age <- cases$age+7
+  cases$page1 <- cases$page1+7
+  cases$page2 <- cases$page1+7
+  cases$page3 <- cases$page1+7
+  males<-rbind(males,cases)
+
+  cases$age <- cases$age+7
+  cases$page1 <- cases$page1+7
+  cases$page2 <- cases$page1+7
+  cases$page3 <- cases$page1+7
+  males<-rbind(males,cases)
+
+
+  ng<-which(females$age>=38)
+  cases<-females[ng,]
+
+  cases$age <- cases$age+7
+  cases$page1 <- cases$page1+7
+  cases$page2 <- cases$page1+7
+  cases$page3 <- cases$page1+7
+  females<-rbind(females,cases)
+
+  cases$age <- cases$age+7
+  cases$page1 <- cases$page1+7
+  cases$page2 <- cases$page1+7
+  cases$page3 <- cases$page1+7
+  females<-rbind(females,cases)
+
+  cases$age <- cases$age+7
+  cases$page1 <- cases$page1+7
+  cases$page2 <- cases$page1+7
+  cases$page3 <- cases$page1+7
+  females<-rbind(females,cases)
+
+## Adjust the weights from population weights to proportions
+males$weight3 <- males$weight2/(sum(males$weight2))
+females$weight3 <- females$weight2/(sum(females$weight2))
+
+##Create the self weighted sample
+maledat <- sample_n(males,238308, replace = TRUE, prob = males$weight3)
+femaledat <- sample_n(females,252876, replace = TRUE,females$weight3)
+
+
+femaledat$ego<-1:252876
+maledat$ego<-252877:491184
+
+het_south <- rbind(maledat, femaledat)
+het_south$ego <-het_south$ego
+
+##make new age.grp for full age range
+het_south$age.grp <- ifelse(het_south$age < 19, 1,
+                            ifelse(het_south$age >= 19 & het_south$age < 25, 2,
+                            ifelse(het_south$age >= 25 & het_south$age < 35, 3,
+                                   ifelse(het_south$age >= 35 & het_south$age < 45, 4,
+                                   ifelse(het_south$age >= 45 & het_south$age < 55, 5,
+                                   ifelse(het_south$age >= 55 ,6,NA))))))
+
+
+
+het_south$race3 <- het_south$RACE3
+het_south = subset(het_south, select = -c(RACE3, Agecat) )
+het_south$sqrt.age <- sqrt(het_south$age)
+
+save(het_south,file = "het_south.rda")
+
+### define the ptype as Spouse/cohab casual or OT
+het_south$ptype1 <- rep(NA,length(het_south$ego))
+het_south$ptype2 <- rep(NA,length(het_south$ego))
+het_south$ptype3 <- rep(NA,length(het_south$ego))
+
+#spouse cohab
+spc <- which(het_south$optype1 <= 2 & het_south$active1 ==1)
+het_south$ptype1[spc] <- 1
+
+spc <- which(het_south$optype2 <= 2 & het_south$active2 ==1)
+het_south$ptype2[spc] <- 1
+
+spc <- which(het_south$optype3 <= 2 & het_south$active3 ==1)
+het_south$ptype3[spc] <- 1
+
+#casual
+cp <- which(het_south$optype1 <= 5 & het_south$optype1 > 2 & het_south$active1 ==1)
+het_south$ptype1[cp] <- 2
+
+cp <- which(het_south$optype2 <= 5 & het_south$optype2 > 2 & het_south$active2 ==1)
+het_south$ptype2[cp] <- 2
+
+cp <- which(het_south$optype3 <= 5 & het_south$optype3 > 2 & het_south$active3 ==1)
+het_south$ptype3[cp] <- 2
+
+
+#One-time
+#Select partners with length 0 and happened in the last month
+ot <- which(het_south$len1 == 0 & het_south$dls1 <=1 & het_south$active1 == 0)
+het_south$ptype1[ot] <- 3
+
+ot <- which(het_south$len2 == 0 & het_south$dls2 <=1 & het_south$active2 == 0)
+het_south$ptype2[ot] <- 3
+
+ot <- which(het_south$len3 == 0 & het_south$dls3 <=1  & het_south$active3 == 0)
+het_south$ptype3[ot] <- 3
+
+#Add variable for specifying het Vs MSM netwrok participation
+het_south$het<-rep(1,length(het_south$ego))
+het_south$msm<-rep(0,length(het_south$ego))
+
+het_south <- transform(het_south,
+                   sex=as.character(sex),
+                   race3=as.character(race3),
+                   prace1=as.character(prace1),
+                   prace2=as.character(prace2),
+                   prace3=as.character(prace3),
+                   het=as.character(het),
+                   msm=as.character(msm),
+                   role.class=as.character(role.class),
+                   stringsAsFactors=FALSE
+)
+
+#get a count of main and casl.
+
+het_south$deg.main.het <- rep(0,length(het_south$ego))
+het_south$deg.casl.het <- rep(0,length(het_south$ego))
+het_south$deg.tot.het <- rep(0,length(het_south$ego))
+het_south$deg.tot.c.het <- rep(0,length(het_south$ego))
+het_south$deg.main.msm <- rep(0,length(het_south$ego))
+het_south$deg.casl.msm <- rep(0,length(het_south$ego))
+het_south$deg.tot.msm <- rep(0,length(het_south$ego))
+het_south$deg.tot.c.msm <- rep(0,length(het_south$ego))
+
+c1 <- which(het_south$ptype1 == 1 & het_south$active1 == 1)
+c2 <- which(het_south$ptype2 == 1 & het_south$active2 == 1)
+c3 <- which(het_south$ptype3 == 1 & het_south$active3 == 1)
+
+het_south$deg.main.het[c1] <- het_south$deg.main.het[c1]+1
+het_south$deg.main.het[c2] <- het_south$deg.main.het[c2]+1
+het_south$deg.main.het[c3] <- het_south$deg.main.het[c3]+1
+het_south$deg.main.het <- pmin(2,het_south$deg.main.het)
+
+p1 <- which(het_south$ptype1 == 2 & het_south$active1 == 1)
+p2 <- which(het_south$ptype2 == 2 & het_south$active2 == 1)
+p3 <- which(het_south$ptype3 == 2 & het_south$active3 == 1)
+
+het_south$deg.casl.het[p1] <- het_south$deg.casl.het[p1]+1
+het_south$deg.casl.het[p2] <- het_south$deg.casl.het[p2]+1
+het_south$deg.casl.het[p3] <- het_south$deg.casl.het[p3]+1
+
+het_south$deg.tot.het <-het_south$deg.main.het  + het_south$deg.casl.het
+
+het_south$deg.main.c.het <- pmin(1,het_south$deg.main.het)
+het_south$deg.casl.c.het <- pmin(1,het_south$deg.casl.het)
+het_south$deg.tot.c.het <- pmin(2,het_south$deg.tot.het)
+het_south$deg.main.c.msm <- rep(0,length(het_south$age))
+het_south$deg.casl.c.msm <- rep(0,length(het_south$age))
+het_south$deg.tot.c.msm <- rep(0,length(het_south$age))
+
+# Concurrency
+het_south$deg.main.conc.het <- ifelse(het_south$deg.main.het > 1, 1, 0)
+het_south$deg.casl.conc.het <- ifelse(het_south$deg.casl.het > 1, 1, 0)
+
+het_south$deg.main.conc.msm <- rep(0,length(het_south$ego))
+het_south$deg.casl.conc.msm <- rep(0,length(het_south$ego))
+
+
+het_south$count.oo.part.trunc.het <- pmax(0,het_south$deg.ot)
+het_south$count.oo.part.trunc.msm <- rep(0,length(het_south$deg.ot))
+
+het_south <- het_south[order(het_south$count.oo.part.trunc.het),]
+
+het_south$risk.grp <- apportion_lr(length(het_south$age),1:5,c(.2,.2,.2,.2,.2))
+het_south <- het_south[order(het_south$ego),]
+
+
+##Calculate the act rate in main a casual for just those with a singe partnership of one type lasting at least len >=1.
+#Finish later when we need act rates!!!!
+m<-which(het_south$ptype1 == 1 & het_south$len1 >= 1 & het_south$deg.tot.het == 1)
+c<-which(het_south$ptype1 == 2 & het_south$len1 >= 1 & het_south$deg.tot.het == 1)
+
+het_south$vag.acts.week<-rep(NA,length(het_south$sex))
+het_south$vag.acts.week.cp<-rep(NA,length(het_south$sex))
+
+het_south$vag.acts.week[m] <- het_south$sex4wk[m]
+het_south$vag.acts.week.cp[m] <- het_south$cond4wk[m]
+
+het_south$vag.acts.week[c] <- het_south$sex4wk[c]
+het_south$vag.acts.week.cp[c] <- het_south$cond4wk[c]
+
+het_south$vag.acts.week.cp <- ifelse(het_south$vag.acts.week.cp > het_south$vag.acts.week, het_south$vag.acts.week,
+                                     het_south$vag.acts.week.cp)
+
+het_south$vag.acts.week <- het_south$vag.acts.week/4
+het_south$vag.acts.week.cp <- het_south$vag.acts.week.cp/4
+
+
+##Compute time since last HIV test
+het_south$cmhivtst <- ifelse(het_south$cmhivtst==9998 | het_south$cmhivtst==9999 ,NA,het_south$cmhivtst)
+het_south$tlnt <- (het_south$cmintvw - het_south$cmhivtst)
+het_south$tlnt <- het_south$tlnt*(52/12)
+
+
+##Make the long pship file
+
+
+dfl <- reshape_edgelist(het_south, delete_empty = c("active", "ptype", "len"), all = FALSE)
+
+act1 <- exclude_and_report(dfl, list("active==1",
+                                     "once==0"))
+
+act0 <- exclude_and_report(dfl, list("once==1"
+))
+
+alters <- rbind(act1, act0)
+alters <- transform(alters, onceLastMonth=ifelse(once==1 & dls==0,1,0))
+
+##Relationship length is in months and we need weeks
+alters$len <- (alters$len/12)*52
+alters$duration <- alters$len
+
+# These are all heterosexual ties
+alters <- within(alters, {
+  todelete_sex <- sex
+  p_sex <- ifelse(todelete_sex==1, 2, 1)
+  role.class <- ifelse(sex==1,1,2)
+  p_race3 <- prace
+  p_age <- page
+  p_condls <- condls
+})
+
+with(alters, table(todelete_sex, sex))
+
+table(alters$ptype, alters$once, useNA='ifany')
+rows<-which(alters$ptype==1 & alters$once==1)
+alters$once[rows]<-0
+
+##Sex type indicators
+
+alters$RAI <-rep(0,length(alters$ego))
+alters$IAI <-rep(0,length(alters$ego))
+alters$RVI <-rep(0,length(alters$ego))
+alters$RVI[alters$sex==2] <-1
+alters$IVI <-rep(0,length(alters$ego))
+alters$IVI[alters$sex==1] <-1
+alters$anal.acts.week.cp <-rep(0,length(alters$ego))
+#alters$vag.acts.week <-rep(0,length(alters$ego))
+
+
+#There are missing values for 2008 partner race variables and 70240 partner age variable
+#Impute the missing variables
+
+race.mix.prop <- prop.table(table(alters$race3,alters$p_race3))
+b <- which(alters$race3 == 1 & is.na(alters$p_race3) == TRUE)
+h <- which(alters$race3 == 2 & is.na(alters$p_race3) == TRUE)
+o <- which(alters$race3 == 3 & is.na(alters$p_race3) == TRUE)
+
+alters$p_race3[b] <- sample(c(1:3),length(b), replace = TRUE, prob= race.mix.prop[1,])
+alters$p_race3[h] <- sample(c(1:3),length(h), replace = TRUE, prob= race.mix.prop[2,])
+alters$p_race3[o] <- sample(c(1:3),length(o), replace = TRUE, prob= race.mix.prop[3,])
+
+for(i in 15:65){
+
+  bm.m <- which(alters$race3 == 1 & alters$sex == 1 & alters$age == i & is.na(alters$p_age) == TRUE)
+  bm.k <- which(alters$race3 == 1 & alters$sex == 1 & alters$age == i & is.na(alters$p_age) == FALSE)
+  j <- sample(alters$p_age[bm.k],length(bm.m),replace=TRUE)
+  alters$p_age[bm.m]<-j
+
+  hm.m <- which(alters$race3 == 2 & alters$sex == 1 & alters$age == i & is.na(alters$p_age) == TRUE)
+  hm.k <- which(alters$race3 == 2 & alters$sex == 1 & alters$age == i & is.na(alters$p_age) == FALSE)
+  j <- sample(alters$p_age[hm.k],length(hm.m),replace=TRUE)
+  alters$p_age[hm.m]<-j
+
+  om.m <- which(alters$race3 == 3 & alters$sex == 1 & alters$age == i & is.na(alters$p_age) == TRUE)
+  om.k <- which(alters$race3 == 3 & alters$sex == 1 & alters$age == i & is.na(alters$p_age) == FALSE)
+  j <- sample(alters$p_age[om.k],length(om.m),replace=TRUE)
+  alters$p_age[om.m]<-j
+
+  bf.m <- which(alters$race3 == 1 & alters$sex == 2 & alters$age == i & is.na(alters$p_age) == TRUE)
+  bf.k <- which(alters$race3 == 1 & alters$sex == 2 & alters$age == i & is.na(alters$p_age) == FALSE)
+  j <- sample(alters$p_age[bf.k],length(bf.m),replace=TRUE)
+  alters$p_age[bf.m]<-j
+
+  hf.m <- which(alters$race3 == 2 & alters$sex == 2 & alters$age == i & is.na(alters$p_age) == TRUE)
+  hf.k <- which(alters$race3 == 2 & alters$sex == 2 & alters$age == i & is.na(alters$p_age) == FALSE)
+  j <- sample(alters$p_age[hf.k],length(hf.m),replace=TRUE)
+  alters$p_age[hf.m]<-j
+
+  of.m <- which(alters$race3 == 3 & alters$sex == 2 & alters$age == i & is.na(alters$p_age) == TRUE)
+  of.k <- which(alters$race3 == 3 & alters$sex == 2 & alters$age == i & is.na(alters$p_age) == FALSE)
+  j <- sample(alters$p_age[of.k],length(of.m),replace=TRUE)
+  alters$p_age[of.m]<-j
+
+
+}
+
+alters$p_sqrt.age <- sqrt(alters$p_age)
+alters$p_age.grp <- ifelse(alters$p_age < 19, 1,
+                            ifelse(alters$p_age >= 19 & alters$p_age < 25, 2,
+                                   ifelse(alters$p_age >= 25 & alters$p_age < 35, 3,
+                                          ifelse(alters$p_age >= 35 & alters$p_age < 45, 4,
+                                                 ifelse(alters$p_age >= 45 & alters$p_age < 55, 5,
+                                                        ifelse(alters$p_age >= 55 ,6,NA))))))
+
+
+alters$ONCE <- ifelse(alters$ptype==3,1,0)
+alters$ONGOING <- ifelse((alters$ptype==1 | alters$ptype==1),1,0)
+
+alters$anal.acts.week <- rep(0,length(alters$p_age.grp))
+alters$RECUAI <- rep(NA,length(alters$p_age.grp))
+alters$INSUAI <- rep(NA,length(alters$p_age.grp))
+
+alters$adol<- rep(0,length(alters$p_age.grp))
+alters$adol <- ifelse(alters$age < 18 | alters$p_age < 18 ,1,0)
+
+# alters4 %>%
+#   rename(
+#     p_age = age,
+#     sepal_width = Sepal.Width
+#   )
+
+# Spouses/Cohabs
+#alters1 <- subset(alters,
+#                  active==1 & ptype==1,
+#                  select=c('ego', 'sex','age', 'sqrt.age', 'race3',
+#                           'het', 'msm', 'duration'))
+
+# Others
+#alters2 <- subset(alters,
+#                  active==1 & ptype==2,
+#                  select=c('ego', 'sex','age', 'sqrt.age', 'race3',
+#                           'het', 'msm', 'duration'))
+
+# One-Times
+#alters3 <- subset(alters,
+#                  once==1 & active!=1,
+#                  select=c('ego', 'sex','age', 'sqrt.age', 'race3',
+#                           'het', 'msm', 'duration'))
+
+
+# Check to see is the alters are all captured
+#(nsfg_alt <- nrow(alters))
+#nsfg_alt_split <- c(nrow(alters1), nrow(alters2), nrow(alters3))
+
+#sum(nsfg_alt_split)
+
+#Add age 15 to use as a factor
+het_south$age15<-ifelse(het_south$age==15,1,0)
+
+save(het_south,file = "het_south_clean.rda")
+
+# Make a list object
+#het_south_egodata <- list(het_egos=subset(het_south, select=c('weight3', 'ego', 'sex', 'age', 'sqrt.age',
+#                                                 'race3', 'het', 'msm', 'role.class', 'deg.main',
+#                                                 'deg.casl', 'risk.grp', 'age.grp')),
+#                     het_altersCohab=alters1, het_alterscasl=alters2,
+#                     het_altersOT=alters3)
+
+#Store wide and long as list
+
+d_het<-subset(het_south,select=c('ego', 'age', 'sqrt.age', 'age.grp', 'race3', 'sex', 'het', 'msm', 'role.class',
+                                 'risk.grp', 'deg.main.het', 'deg.casl.het', 'deg.tot.het', 'deg.main.msm', 'deg.casl.msm', 'deg.tot.msm',
+                                 'deg.main.conc.het', 'deg.casl.conc.het', 'deg.main.conc.msm', 'deg.casl.conc.msm',
+                                 'count.oo.part.trunc.het', 'count.oo.part.trunc.msm','age15',
+                                 'deg.main.c.het', 'deg.casl.c.het', 'deg.tot.c.het', 'deg.main.c.msm', 'deg.casl.c.msm',
+                                 'deg.tot.c.msm', 'evhivtst', 'tlnt'))
+
+l_het<-subset(alters,select=c('ego', 'age', 'sqrt.age', 'age.grp', 'race3', 'sex', 'het', 'msm',
+                               'RAI', 'IAI', 'RVI', 'IVI', 'p_age', 'p_sqrt.age', 'p_age.grp', 'p_race3',
+                               'p_sex', 'ptype', 'duration',
+                               'anal.acts.week', 'anal.acts.week.cp', 'vag.acts.week', 'vag.acts.week.cp',
+                               'ONCE', 'ONGOING', 'RECUAI','INSUAI','condls', 'adol'))
+
+save(d_het,file = "data/d_het.rda")
+save(l_het,file = "data/l_het.rda")
+
+
+
+#####################################################################################################
+#####################################################################################################

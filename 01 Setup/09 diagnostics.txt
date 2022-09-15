@@ -1,0 +1,281 @@
+# R script
+# Fit diagnostics of the C30 networks
+
+library(EpiModel)
+library(EpiModelHIV)
+
+####   MAIN PARTNERSHIP HET NETWORK
+load("~/concept30_south/est/fit_main.het.rda")
+
+# Static diagnostics on the ERGM fit
+startclock <- proc.time()
+    dx.main.het.static <- netdx(fit_main.het, nsims = 200, dynamic = FALSE,
+                                keep.tedgelist = FALSE,
+                                sequential = TRUE,
+                                verbose = TRUE,
+                                set.control.ergm = control.simulate.formula(MCMC.prop = ~strat(attr = ~paste(age.grp, race, het), empirical = TRUE) + sparse,
+                                                        MCMC.burnin=3e6,
+                                                        MCMC.interval=3e5))
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.main.het.static
+    plot(dx.main.het.static)
+
+    save(dx.main.het.static,file = "~/concept30_south/DX/dx.main.het.static.rda")
+
+    tiff(filename = "~/concept30_south/DX/dx.main.het.static.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.main.het.static)
+    dev.off()
+
+    dx.main.het.static <- NULL
+
+ # Dynamic diagnostics on the ERGM fit
+    startclock <- proc.time()
+    dx.main.het.dynamic <- netdx(fit_main.het, nsims = 5, nsteps = 20000, sequential = TRUE,
+                                nwstats.formula = "formation",
+                                keep.tedgelist = FALSE,
+                                verbose = TRUE,
+                                set.control.ergm = list(MCMC.burnin=1e7,
+                                                        MCMC.interval=1e6),
+                                set.control.stergm = list(MCMC.prop.form = ~strat(attr = ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse,
+                                                          MCMC.maxchanges = 1e8,
+                                                          MCMC.burnin.min =1.5e5,
+                                                          MCMC.burnin.max =1.5e5))
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.main.het.dynamic
+    plot(dx.main.het.dynamic)
+    save(dx.main.het.dynamic,file = "~/concept30_south/DX/dx.main.het.dynamic.rda")
+
+    tiff(filename = "~/concept30_south/DX/dx.main.het.dynamic.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.main.het.dynamic)
+    dev.off()
+
+    dx.main.het.dynamic <- NULL
+    fit_main.het <- NULL
+
+####   CASUAL PARTNESHIPS HET NETWORK
+    load("~/concept30_south/est/fit_casl.het.rda")
+
+    # Static diagnostics on the ERGM fit
+    startclock <- proc.time()
+    dx.casl.het.static <- netdx(fit_casl.het, nsims = 200, dynamic = FALSE,
+                                keep.tedgelist = FALSE,
+                                sequential = TRUE,
+                                verbose = TRUE,
+                                set.control.ergm = control.simulate.formula(MCMC.prop = ~strat(attr = ~paste(age.grp, race, het), empirical = TRUE) + sparse,
+                                                     MCMC.burnin=4e6,
+                                                        MCMC.interval=4e5))
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.casl.het.static
+
+    save(dx.casl.het.static,file = "~/concept30_south/DX/dx.casl.het.static.rda")
+    tiff(filename = "~/concept30_south/DX/dx.casl.het.static.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.casl.het.static)
+    dev.off()
+
+    dx.casl.het.static <- NULL
+
+
+    # Dynamic diagnostics on the ERGM fit
+    startclock <- proc.time()
+    dx.casl.het.dynamic <- netdx(fit_casl.het, nsims = 5, nsteps = 15000, sequential = TRUE,
+                                nwstats.formula = "formation",
+                                keep.tedgelist = FALSE,
+                                verbose = TRUE,
+                                set.control.ergm = list(MCMC.burnin=2e6,
+                                                        MCMC.interval=2e6),
+                                set.control.stergm = list(MCMC.prop.form = ~strat(attr = ~paste(age.grp, race, het), empirical = TRUE) + discord + sparse,
+                                                          MCMC.maxchanges = 1e8,
+                                                          MCMC.burnin.min =1.5e5,
+                                                          MCMC.burnin.max =1.5e5))
+
+
+
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.casl.het.dynamic
+
+    save(dx.casl.het.dynamic,file = "~/concept30_south/DX/dx.casl.het.dynamic.rda")
+    tiff(filename = "~/concept30_south/DX/dx.casl.het.dynamic.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.casl.het.dynamic)
+    dev.off()
+
+    dx.casl.het.dynamic <- NULL
+    fit_casl.het <- NULL
+
+####   ONE TIME PARTNESHIPS HET NETWORK
+
+
+    load("~/concept30_south/est/fit_inst.het.rda")
+
+    # Static diagnostics on the ERGM fit
+    startclock <- proc.time()
+    dx.inst.het.static <- netdx(fit_inst.het, nsims = 200, dynamic = FALSE,
+                                keep.tedgelist = FALSE,
+                                sequential = TRUE,
+                                verbose = TRUE,
+                                set.control.ergm =  control.simulate.formula(MCMC.prop = ~strat(attr = ~paste(age.grp, race, het), empirical = TRUE) + sparse,
+                                                        MCMC.burnin=3e6,
+                                                        MCMC.interval=3e5))
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.inst.het.static
+
+    save(dx.inst.het.static,file = "~/concept30_south/DX/dx.inst.het.static.rda")
+    tiff(filename = "~/concept30_south/DX/dx.inst.het.static.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.inst.het.static)
+    dev.off()
+
+    dx.inst.het.static <- NULL
+    fit_inst.het <- NULL
+
+#####  MSM partnership networks
+
+
+    ####   MAIN PARTNERSHIP MSM NETWORK
+    load("~/concept30_south/est/fit_main.msm.rda")
+
+    # Static diagnostics on the ERGM fit
+    startclock <- proc.time()
+    dx.main.msm.static <- netdx(fit_main.msm, nsims = 200, dynamic = FALSE,
+                                keep.tedgelist = FALSE,
+                                sequential = TRUE,
+                                verbose = TRUE,
+                                set.control.ergm =  control.simulate.formula(MCMC.prop = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + sparse,
+                                                        MCMC.burnin=2e7,
+                                                        MCMC.interval=2e6))
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.main.msm.static
+    plot(dx.main.msm.static)
+
+    save(dx.main.msm.static,file = "~/concept30_south/DX/dx.main.msm.static.rda")
+    tiff(filename = "~/concept30_south/DX/dx.main.msm.static.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.main.msm.static)
+    dev.off()
+
+    dx.main.msm.static <- NULL
+
+
+    # Dynamic diagnostics on the ERGM fit
+    startclock <- proc.time()
+    dx.main.msm.dynamic <- netdx(fit_main.msm, nsims = 5, nsteps = 15000, sequential = TRUE,
+                                 nwstats.formula = "formation",
+                                 keep.tedgelist = FALSE,
+                                 verbose = TRUE,
+                                 set.control.ergm = list(MCMC.burnin=1e8,
+                                                         MCMC.interval=1e8),
+                                 set.control.stergm = list(MCMC.prop.form = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse,
+                                                           MCMC.maxchanges = 1e7,
+                                                           MCMC.burnin.min =1.5e5,
+                                                           MCMC.burnin.max =1.5e5))
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.main.msm.dynamic
+
+    save(dx.main.msm.dynamic,file = "~/concept30_south/DX/dx.main.msm.dynamic.rda")
+    tiff(filename = "~/concept30_south/DX/dx.main.msm.dynamic.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.main.msm.dynamic)
+    dev.off()
+
+
+    dx.main.msm.dynamic <- NULL
+    fit_main.msm <- NULL
+
+    ####   CASUAL PARTNESHIPS MSM NETWORK
+
+     load("~/concept30_south/est/fit_casl.msm.rda")
+
+    # Static diagnostics on the ERGM fit
+    startclock <- proc.time()
+    dx.casl.msm.static <- netdx(fit_casl.msm, nsims = 200, dynamic = FALSE,
+                                keep.tedgelist = FALSE,
+                                sequential = TRUE,
+                                verbose = TRUE,
+                                set.control.ergm =  control.simulate.formula(MCMC.prop = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + sparse,
+                                                        MCMC.burnin=1e7,
+                                                        MCMC.interval=1e6))
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.casl.msm.static
+
+    save(dx.casl.msm.static,file = "~/concept30_south/DX/dx.casl.msm.static.rda")
+    tiff(filename = "~/concept30_south/DX/dx.casl.msm.static.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.casl.msm.static)
+    dev.off()
+
+    dx.casl.msm.static <- NULL
+
+
+    # Dynamic diagnostics on the ERGM fit
+    startclock <- proc.time()
+    dx.casl.msm.dynamic <- netdx(fit_casl.msm, nsims = 5, nsteps = 10000, sequential = TRUE,
+                                 nwstats.formula = "formation",
+                                 keep.tedgelist = FALSE,
+                                 verbose = TRUE,
+                                 set.control.ergm = list(MCMC.burnin=1e5,
+                                                         MCMC.interval=1e5),
+                                 set.control.stergm = list(MCMC.prop.form = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + discord + sparse,
+                                                           MCMC.maxchanges = 1e7,
+                                                           MCMC.burnin.min =1.5e5,
+                                                           MCMC.burnin.max =1.5e5))
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.casl.msm.dynamic
+
+    save(dx.casl.msm.dynamic,file = "~/concept30_south/DX/dx.casl.msm.dynamic.rda")
+    tiff(filename = "~/concept30_south/DX/dx.casl.msm.dynamic.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.casl.msm.dynamic)
+    dev.off()
+
+    dx.casl.msm.dynamic <- NULL
+    fit_casl.msm <- NULL
+
+    ####   ONE TIME PARTNESHIPS MSM NETWORK
+
+
+    load("~/concept30_south/est/fit_inst.msm.rda")
+
+    # Static diagnostics on the ERGM fit
+    startclock <- proc.time()
+    dx.inst.msm.static <- netdx(fit_inst.msm, nsims = 200, dynamic = FALSE,
+                                keep.tedgelist = FALSE,
+                                sequential = TRUE,
+                                verbose = TRUE,
+                                set.control.ergm =  control.simulate.formula(MCMC.prop = ~strat(attr = ~paste(age.grp, race, msm), empirical = TRUE) + sparse,
+                                                        MCMC.burnin=1e7,
+                                                        MCMC.interval=2e6))
+
+    hours <- (proc.time()-startclock)['elapsed']/60/60
+    hours
+    dx.inst.msm.static
+
+    save(dx.inst.msm.static,file = "~/concept30_south/DX/dx.inst.msm.static.rda")
+    tiff(filename = "~/concept30_south/DX/dx.inst.msm.static.tiff", height = 10.5, width = 8, units = "in", res = 250)
+    par(mfrow = c(1, 1), mar = c(4,3,2.5,1), mgp = c(2,.5,0), cex=.7)
+    plot(dx.inst.msm.static)
+    dev.off()
+
+    dx.inst.msm.static <- NULL
+    fit_inst.msm <- NULL
+

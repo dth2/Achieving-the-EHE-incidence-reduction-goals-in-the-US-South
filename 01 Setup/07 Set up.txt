@@ -1,0 +1,32 @@
+# Setup the inputs for model estimation
+# This script is intended to be run in R. Users will need to define their own directory paths.
+# The script creates the netparams and netstats objects that will be used to estimate the network modeles used by EpiModelHIV
+# The two functions used in this file (build_netparams_C30 and build_netstats_C30) can be found in the Make NW_params.txt and Make NW_stats.txt files respectively
+## Inputs :d_msm.rda, l_msm.rda, d_het.rda, l_het.rda
+## Outputs: netparams.rda, netstats.rda
+
+
+library(tidyverse)
+library(EpiModel)
+
+#Pull in the data
+load("~/concept30_south/ARTnet_comp/data/d_msm.rda")
+load("~/concept30_south/ARTnet_comp/data/l_msm.rda")
+load("~/concept30_south/NSFG/data/d_het.rda")
+load("~/concept30_south/NSFG/data/l_het.rda")
+d<-rbind(d_msm,d_het)
+l<-rbind(l_msm,l_het)
+
+source("~/concept30_south/Make NW_params.R")
+netparams <- build_netparams_C30(d,l)
+
+source("~/concept30_south/Make NW_stats.R")
+netstats <- build_netstats_C30(netparams, d,l)
+
+
+
+save(netparams,file = "~/concept30_south/est/netparams.rda")
+save(netstats,file = "~/concept30_south/est/netstats.rda")
+
+save(netparams,file = "~/concept30_south/scenarios/calib/est/netparams.rda")
+save(netstats,file = "~/concept30_south/scenarios/calib/est/netstats.rda")

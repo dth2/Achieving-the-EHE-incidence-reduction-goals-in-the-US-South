@@ -1,0 +1,559 @@
+* This script is intended to run in SPSS and uses data imported from the NSFG website.
+* The male and female files in each wave specific directory have been processed using the scripts provided by the NSFG to add in meta data.
+* Users will need to define their own directory paths
+* This script produces the sexual network variables for female respondents
+* output:NSFGsexnet2011_17f.sav
+
+* Information collected on all most recent partners (regardless of dls) and additional partners if in last 12 mo.
+* recode vars used when possible, these have some imputed values (flags are _I vars)
+
+* NEW VARIABLES CYCLE:
+* Added question JH-4b / STDOTHR12 asking about testing in the last 12 months for “any other
+sexually transmitted disease, like gonorrhea, herpes or syphilis” .
+
+******************************************************************************************************************.
+CD 'H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017'.
+
+GET
+  FILE='H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017\2011-2013\NSFG_2011_2013_females.sav'.
+
+DATASET NAME DataSet1 WINDOW=FRONT.
+
+
+DATASET ACTIVATE DataSet1.
+ADD FILES /FILE=*
+  /FILE='H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017\2013-2015\NSFG_2013_2015_females.sav'
+  /RENAME (QUARTER=d0)
+  /IN=f2013
+  /DROP=d0.
+VARIABLE LABELS f2013
+ 'Case source is H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017\2013-2015\NSFG_2013_2015_females.sav'.
+EXECUTE.
+
+ADD FILES /FILE=*
+  /FILE='H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017\2015-2017\NSFG_2015_2017_females.sav'
+  /RENAME (QUARTER=d0)
+  /IN=f2015
+  /DROP=d0.
+VARIABLE LABELS f2015
+ 'Case source is H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017\2015-2017\NSFG_2015_2017_females.sav'.
+EXECUTE.
+SORT CASES BY CASEID(A).
+EXECUTE.
+
+
+MATCH FILES /TABLE=*
+  /FILE='H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017\FEM_weights.sav'
+  /BY CASEID.
+EXECUTE.
+
+**********************************************************************************************************.
+do if f2013 ne 1 & f2015 ne 1.
+compute f2011=1.
+end if.
+execute.
+
+VARIABLE LABELS f2011
+ 'Case source is H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017\2015-2017\NSFG_2011_2013_females.sav'.
+
+do if f2011=1.
+compute cohort = 2011.
+end if.
+do if f2013=1.
+compute cohort = 2013.
+end if.
+do if f2015=1.
+compute cohort = 2015.
+end if.
+execute.
+
+* Weight variable.
+do if cohort=2011.
+compute weight = WGT2011_2013.
+else if cohort=2013.
+compute weight = WGT2013_2015.
+else if cohort=2015.
+compute weight = WGT2015_2017.
+end if.
+Execute.
+
+FREQUENCIES
+variables = f2011, f2013, f2015, cohort.
+EXECUTE.
+
+* all orig npart vars
+* note acasi vars OPP*NUM includes V/A/O partners, so is not equivalent to LIFPRTNR
+* LIFPRTNR from main q is "intercourse" opp sex partners only.
+freq  PARTS1YR  LIFPRTNR  OPPYEARNUM OPPLIFENUM SAMYEARNUM SAMLIFENUM
+ AGER VRY1STAG.
+
+do repeat
+ oldvar =  AGER
+    HADSEX LIFPRTNR PARTS1YR VRY1STAG
+    PST4WKSX PSWKCOND1 PSWKCOND2 /  
+ newvar = age 
+     vsex.main vsnplife vsnpyr.main agefsex
+     sex4wk cond4wk1 cond4wk2.
+compute newvar = oldvar.
+end repeat.
+
+recode EVERPREG (5=0) (else=copy) into evpreg / EVMARCOH (5=0).
+
+var labs
+ vsex.main 'Ever had sexual intercourse with OS partner'
+ age 'Respondent age'
+ vsnplife 'Number of Intercourse sex partners in lifetime (recode of CH1)'
+ vsnpyr.main 'Number of Intercourse sex partners in last 12 mos (recode, TC at 7)'
+ agefsex 'R age at first sex'
+ sex4wk 'Number of times had sex in past 4 wks'
+ cond4wk1 'Number of times used condoms in past 4 wks if sex4wk=1'
+ cond4wk2 'Number of times used condoms in past 4 wks if sex4wk > 1'
+ evpreg 'Ever been pregnant'.
+
+freq sex4wk cond4wk1 cond4wk2.
+
+freq vsex.main  vsnplife vsnpyr.main.
+
+* vsnplife and vsnpyr.main orig vars have no missing value codes, but vsnpyr.main is sysmis if vsex.main ne 1.
+recode vsnpyr.main (sysmis=0).
+recode vsnplife (4 thru hi=3) (else=copy) into vsnplife3 / vsnpyr.main (4 thru hi=3) (else=copy) into vsnpyr.main3.
+freq vsnplife3 vsnpyr.main3.
+cross vsnplife3 by vsnpyr.main3.
+
+FREQUENCIES
+  TIMESMAR hsbnrace1 hsbnrace2 hsbnrace3 hsbnrace4 LSEXDATE
+  WHOFSTPR  SAMEMAN WHOFSTPR WHOSNC1Y CURRPRTS CURRPRTT
+  MATCHFP	MATCHFP2	MATCHFP3 MATCHHP	MATCHHP2	MATCHHP3
+  P1YRELP  P1YRELP2  P1YRELP3  RELATP1 RELATP2 RELATP3
+  P1YRAGE P1YRAGE2 P1YRAGE3 P1YHSAGE P1YHSAGE2 P1YHSAGE3
+  CURRPAGE RELAGE  CURRPAGE2 RELAGE2 CURRPAGE3 RELAGE3 LSEXPAGE
+  CMDOBCH CMDOBCP FPAGE
+  P1YNRACE1 P1YNRACE2 P1YNRACE3 CURCOHNRACE FSEXNRACE
+  CMLSEXFP CMLSEX CMLSEX2 CMLSEX3 
+  VRY1STSX CMFSEXTOT CMFSEXTOT2 CMFSEXTOT3 
+  PARTDUR1 PARTDUR2 PARTDUR3
+  STILFPSX PCURRNT PCURRNT2 PCURRNT3 .
+
+
+* transfer current husband race to new var.  all other current husband vars exist.
+*cross marstat by timesmar.
+do repeat
+  hrace = hsbnrace1 hsbnrace2 hsbnrace3 hsbnrace4 /
+  hnum = 1 2 3 4.
++ do if any(marstat, 1, 5).
+.    if timesmar = hnum chnrace=hrace.
++ end if.
+end repeat.
+freq chnrace.
+
+* set RELATP var coding to match P1YRELP coding. only used if no other rel info exists,
+* which is most commonly code 5 6 (recode 20).
+recode RELATP1 RELATP2 RELATP3 (1=7) (3=8) (else=20) into rels1 rels2 rels3.
+
+* Identify number of partners in modules using PARTDUR -- most complete variable for F.
+compute ndls = nvalid(PARTDUR1, PARTDUR2, PARTDUR3).
+freq ndls.
+
+
+vector optype (3) page (3) prace (3) active (3) dfs (3) dls (3) len (3) once (3).
+exec.
+
+do repeat
+ plyrel = P1YRELP  P1YRELP2  P1YRELP3 /
+ plyrels = rels1 rels2 rels3 /
+ p1yrage = P1YRAGE P1YRAGE2 P1YRAGE3 /
+ cpage = CURRPAGE CURRPAGE2 CURRPAGE3 /
+ plyage = P1YHSAGE P1YHSAGE2 P1YHSAGE3 /
+ plyrace = P1YNRACE1 P1YNRACE2 P1YNRACE3 /
+ cmlsex = CMLSEX CMLSEX2 CMLSEX3 /
+ cmfsex = CMFSEXTOT CMFSEXTOT2 CMFSEXTOT3 /
+ dur = PARTDUR1 PARTDUR2 PARTDUR3 /
+ current =  PCURRNT PCURRNT2 PCURRNT3 /
+ nparts = 1 2 3 /
+ optype = optype1 optype2 optype3 /
+ page = page1 page2 page3 /
+ prace = prace1 prace2 prace3 /
+ active = active1 active2 active3 /
+ dls = dls1 dls2 dls3 /
+ dfs = dfs1 dfs2 dfs3 /
+ len = len1 len2 len3 /
+ once = once1 once2 once3.
+ 
+do if  (ndls ge nparts). 
+
+*Vars that don't depend on rel.
+
+do if not(missing(dur)).
++   do if dur=997. /*NSFG code for once only.
+.      compute once=1.
+.      compute len=0.
++    else if dur=0.
+.      compute once=0.
+.      compute len=0.5.
++    else.
+.      compute once=0.
+.      compute len=dur.
++    end if.
+end if.
+
+do if vsnplife=1. /* only partner is different.
+. compute dls = CMINTVW - CMLSEXFP.
+.  if CMLSEXFP>9990 dls=CMLSEXFP-9000.
+else.
+.  compute dls = CMINTVW - cmlsex.
+.  if cmlsex>9990 dls=cmlsex-9000. 
+end if.
+
+if (missing(dls1) or dls1>900 or dls1<0) dls1=CMINTVW-LSEXDATE. /* salvage with NSFG recode.
+
+do if vsnplife=1. /* only partner is different.
+. compute dfs = CMINTVW - VRY1STSX.
+.  if VRY1STSX>9990 dfs=VRY1STSX-9000.
+else.
+.  compute dfs = CMINTVW - cmfsex.
+.  if cmfsex>9990 dfs=cmfsex-9000.
+end if.
+
+do if (missing(dfs) or dfs > 990 or dfs<0).
++  do if dur=997. /* one-off.
+.    compute dfs = dls.
++ else if (dls<990 and not(missing(dur))).
+.    compute dfs = dls + dur.
++ end if.
+end if.
+
+
+* Transfer all rel info to optype (different than M), don't recode into final consistent codes till later.
+
+do if not(missing(plyrel)).
+.  compute optype = plyrel. /* this includes info from WHOFSTPR if vsnplife>1.
+else if vsnplife=1.
+.  compute optype = WHOFSTPR.
+else.
+.  compute optype = plyrels. /* scavenge ptype at start of rel. all R's are never mar/coh, and P's are casual.
+end if.
+
+* Set vars that depend on rel.
+
+do if not(missing(current)).
++  do if current=1.
+.      compute active=1.
++  else if current=5.
+.      compute active=0.
++ else.
+.      compute active=9.
++  end if.
+else if (optype=7 and marstat=1) or (optype=8 and marstat=2).
+.  compute active=1.
+else if optype=13 and STILFPSX=1.
+.  compute active=1.
+else if not(missing(optype)).
+.  compute active=0.
+end if.
+
+* tag cases where dls is not in last year.
+if dls > 12 active=2.
+
+* Partner age is complicated to match.  
+* not asked if R<18 yrs old, tagged below.  asked in acasi instead.
+* also not asked when reltype=20 (other) and dls > 12 -- source of almost all of the page1 missing.
+* when only partner and not S/C we pick up after the loop from FPAGE.
+
+do if not(missing(plyage)) and not(missing(p1yrage)). /* not S/C/F
+.  compute page = age + (plyage - p1yrage).
+.  if (plyage>96 or p1yrage> 96) page=99.
+else if optype=7.
+.  compute page = trunc((CMINTVW - CMDOBCH)/12). /* current husband.
+.  if CMDOBCH=9999 page=99.
+else if optype=8.
+.  compute page = trunc((CMINTVW - CMDOBCP)/12).  /* current cohab.
+.  if CMDOBCP=9999 page=99.
+else if optype=9.
+. compute page = trunc((CMINTVW - CMDOBCX)/12).  /* 1st prev cohab.
+else if optype=13.
+.  compute page = age + (FPAGE-agefsex). /* first partner, but not only partner.
+.  if FPAGE > 97 page=99.
+end if.
+
+do if age < 18. /* salvage with ACASI variables -- but not much there this cycle.
++ do if (missing(page) and cpage<90) .
+.    compute page=cpage.
++ else.
+.   recode page (sysmis 99=95).
++ end if.
+end if.
+
+do if agefsex < 18 and optype=13.
++ do if (missing(page) and cpage<90) .
+.    compute page=cpage.
++ else.
+.   recode page (sysmis 99=95).
++ end if.
+end if.
+
+* Partner race.
+do if not(missing(plyrace)).
+.  compute prace = plyrace.
+else if optype=7.
+.  compute prace = chnrace.
+else if optype=8.
+.    compute prace = CURCOHNRACE.
+else if optype=13.
+.    compute prace = FSEXNRACE.
+end if.
+recode prace (5 thru hi=9).
+if current=5 and sysmis(prace) prace=5. /* not asked if inactive for nonSC.
+
+end if.
+
+* Compute consistent optype var: S/C/FS/FC/O/M.
+recode optype (7=1) (8=2) (1 thru 4=3) (9 thru 12=4) (13 20 =5) (98 99=9) .
+
+end repeat.
+
+* Strip the leading 9 from the LSEXPAGE variable so we can use it for salvage.
+do if LSEXPAGE < 900.
++ compute lastpage = LSEXPAGE.
+else.
++ compute lastpage = LSEXPAGE - 900.
+end if.
+if (missing(page1) and lastpage < 97) page1= rnd(lastpage + dls1/12). /*salvage p1 with LSEXPAGE.
+
+*do if missing(page1) .and vsnplife=1 and not(missing(FPAGE)). /* valid if dls < 13.
+*. compute page1=age + (FPAGE-agefsex).
+*end if.
+
+freq optype1 to once3.
+
+******************************************************************************************.
+* Condom use - partner specific
+
+freq    LSTMTHP1 LSTMTHP2 LSTMTHP3 LSTMTHP4 
+   LSTMTHP5 LSTMTHP6 LSTMTHP7 LSTMTHP8 
+   LSTMTHP9 LSTMTHP10 LSTMTHP11 LSTMTHP12
+   FSTMTHP1 FSTMTHP2 FSTMTHP3 FSTMTHP4 
+   FSTMTHP5 FSTMTHP6 FSTMTHP7 FSTMTHP8 
+   FSTMTHP9 FSTMTHP10 FSTMTHP11 FSTMTHP12.
+
+** Not consistent with M vars.
+count condls1 = LSTMTHP1 LSTMTHP2 LSTMTHP3 LSTMTHP4 (4).
+count condls2 = LSTMTHP5 LSTMTHP6 LSTMTHP7 LSTMTHP8 (4).
+count condls3 = LSTMTHP9 LSTMTHP10 LSTMTHP11 LSTMTHP12 (4) .
+
+** Consistent with M Vars.
+count condfs1 = FSTMTHP1 FSTMTHP2 FSTMTHP3 FSTMTHP4 (4).
+count condfs2 = FSTMTHP5 FSTMTHP6 FSTMTHP7 FSTMTHP8 (4).
+count condfs3 = FSTMTHP9 FSTMTHP10 FSTMTHP11 FSTMTHP12 (4).
+
+freq condls1 to condfs3.
+cross condfs1 by condls1 / condfs2 by condls2 / condfs3 by condls3.
+var labs
+ condls1 'Condom use at last sex'
+ condfs1 'Condom use at first sex'
+ condls2 'Condom use at last sex'
+ condfs2 'Condom use at first sex'
+ condls3 'Condom use at last sex'
+ condfs3 'Condom use at first sex'.
+
+***********************************************************************************************
+***	Last 4 wk vars -- vars and skips very different for M/F.
+
+freq vsnplife vsnpyr.main sex4wk cond4wk1 cond4wk2 condom.
+
+recode cond4wk1 (5=0) (9=999) / sex4wk  (998=999).
+
+do if vsex.main ne 1.
+. recode sex4wk cond4wk1 cond4wk2 CONDOM (sysmis=998) (lo thru hi=998).
+. compute cond4wk=998.
+else if vsnpyr.main=0.
+. recode sex4wk (sysmis=0).
+. recode cond4wk1 cond4wk2 (sysmis=996).
+. compute cond4wk=996.
+end if.
+
+freq sex4wk CONDOM.
+* remaining sex4wk sysmis cases are probably skips b/c they didn't fill the calendar
+* with a sex in the month preceding the interview (see MONSX-MONSX48 vars in the codebook).
+* too complicated to check, so we assume valid skip here.
+recode sex4wk (sysmis=0).
+
+do if sex4wk=0.
+. recode cond4wk (sysmis=996).
+else  if CONDOMR=2. /* cond4wk questions not asked if evercond=no.
+. recode cond4wk (sysmis=0).
+else if sex4wk=1. /*4wk1 asked if sex4wk=1.
+. compute cond4wk = cond4wk1.
+else if range(sex4wk, 2, 800). /*4wk2 asked if sex4wk>1.
+. compute cond4wk = cond4wk2.
+else if sex4wk > 900.
+. compute cond4wk = sex4wk.
+end if.
+
+recode cond4wk (sysmis=999).
+
+var lab cond4wk 'Number of times used condoms at sex in the last 4 wks'.
+
+freq sex4wk cond4wk.
+
+
+**************************************************************************************.
+* Recodes for missingness.
+
+do if vsex.main ne 1.
+. recode optype1 optype2 optype3 active1 active2 active3 once1 once2 once3
+     prace1 prace2 prace3  (sysmis = 8).
+. recode condls1 condfs1 condls2 condfs2 condls3 condfs3 (0 1=8).
+. recode page1 page2 page3 (sysmis = 98).
+. recode  len1 len2 len3 dls1 dls2 dls3 dfs1 dfs2 dfs3  (sysmis = 998).
+
+else if ndls=1 or vsnplife=1.
+. recode optype2 optype3 active2 active3  once2 once3
+      prace2 prace3 (sysmis = 6).
+. recode  condls2 condfs2 condls3 condfs3 (0 1=6).
+. recode page2 page3 (sysmis = 96).
+. recode  len2 len3 dls2 dls3  dfs2 dfs3  (sysmis = 996).
+
+else if ndls=2 or vsnplife=2.
+. recode  optype3 active3  once3 prace3  (sysmis = 6).
+. recode condls3 condfs3 (0 1=6).
+. recode  page3 (sysmis = 96).
+. recode  len3  dls3  dfs3  (sysmis = 996).
+
+end if.
+
+recode page1 to page3 (lo thru 0=99) / dfs1 to dls3 (lo thru -1 = 999).
+exec.
+
+freq optype1 to once3 vsnpyr.main vsnpyr.main3 vsnplife vsnplife3  
+ condls1 condfs1 condls2 condfs2 condls3 condfs3 cond4wk.
+
+* code residual missing.
+recode optype1 optype2 optype3 active1 active2 active3 once1 once2 once3
+   prace1 prace2 prace3 vsnpyr.main3 vsnplife3 (sysmis = 9).
+recode page1 page2 page3  vsnpyr.main vsnplife (sysmis = 99).
+recode  len1 len2 len3 dls1 dls2 dls3 dfs1 dfs2 dfs3 (sysmis = 999).
+
+exec.
+miss val
+ active1 active2 active3 once1 once2 once3
+    prace1 prace2 prace3 (5 thru hi) /
+ optype1 optype2 optype3 
+    condls1 condfs1 condls2 condfs2 condls3 condfs3 (6 thru hi) /
+ page1 page2 page3 (95 thru hi) /
+ len1 len2 len3 dls1 dls2 dls3 dfs1 dfs2 dfs3 sex4wk cond4wk (996 thru hi).
+
+val lab
+active1 active2 active3 once1 once2 once3 prace1 prace2 prace3
+  5 'not asked' 
+  6 'fewer partners'
+  8 'never had vsex'
+  9 'miss/dk/ref' /
+optype1 optype2 optype3 condls1 condfs1 condls2 condfs2 condls3 condfs3
+  6 'fewer partners'
+  8 'never had vsex'
+  9 'miss/dk/ref' /
+ page1 page2 page3
+   95 'not asked R<18'
+   96 'fewer partners'
+   98 'never had vsex'
+   99 'miss/dk/ref' /
+ len1 len2 len3  dls1 dls2 dls3 dfs1 dfs2 dfs3 
+  996 'fewer partners'
+  998 'never had vsex'
+  999 'miss/dk/ref' /
+ sex4wk cond4wk
+  996 'NA'
+  998 'never had vsex'
+  999 'miss/dk/ref' .
+
+add val lab
+ active1 active2 active3 
+   0 'not active' 1 'active' 2 'DLS not in last yr' /
+ optype1 optype2 optype3
+ 1 'Current spouse'
+  2 'Current cohab'
+  3 'Former spouse'
+  4 'Former cohab'
+  5 'Other' /
+ len1 len2 len3
+			0 '1 time' 0.5 '<1 month'  /
+ once1 once2 once3
+   0 'not one time only'
+   1 '1 time only' /
+ prace1 prace2 prace3 
+			1 'Hispanic' 2 'NH White' 3 'NH Black' 4 'Other'  .
+
+
+freq optype1 to once3 optype1 optype2 optype3 vsnpyr.main vsnpyr.main3 vsnplife vsnplife3 
+ condls1 condfs1 condls2 condfs2 condls3 condfs3 sex4wk cond4wk.
+
+
+*******************************************************************************************
+* Number of partners in the last year.
+* Still some discrepancies between summary and net var; all but one case has dls=12.
+count ndlsyr = dls1 dls2 dls3 (0 thru 12).
+cross vsnpyr.main3 by ndlsyr / missing=include.
+TEMPORARY.
+sel if ndlsyr < vsnpyr.main3.
+list vsnpyr.main3 ndlsyr dls1 dls2 dls3.  /* none are salvageable.
+
+var lab
+ ndlsyr 'Partners in last yr based on dls'.
+
+*******************************************************************************************.
+*Missing partner age.
+cross page1 by active1 / page2 by active2 / page3 by active3 / missing=include.
+
+*******************************************************************************************.
+save outFILE="NSFGsexnet2011_17f.sav"
+ / keep =    CASEID cohort CMINTVW  INTVWYEAR
+  WGT2011_2013 WGT2013_2015 WGT2015_2017 weight
+  age vsex.main vsnplife vsnplife3 vsnpyr.main 
+  RACE HISPRACE HISPRACE2 BRNOUT YRSTRUS CMBIRTH 
+  HIEDUC TOTINCR CURR_INS 
+  HADSEX VRY1STSX AGEFSTSX agefsex PARTS1YR
+  evpreg EVMARCOH MARSTAT FMARNO CURRPRTS CURRPRTT
+  WHOFSTPR  SAMEMAN WHOFSTPR WHOSNC1Y
+  MATCHFP	MATCHFP2	MATCHFP3 MATCHHP	MATCHHP2	MATCHHP3 
+  P1YRELP  P1YRELP2  P1YRELP3  RELATP1 RELATP2 RELATP3
+  P1YRAGE P1YRAGE2 P1YRAGE3 P1YHSAGE P1YHSAGE2 P1YHSAGE3
+  CMDOBCH CMDOBCP FPAGE
+  P1YNRACE1 P1YNRACE2 P1YNRACE3 CURCOHNRACE FSEXNRACE
+  CMLSEXFP CMLSEX CMLSEX2 CMLSEX3 
+  VRY1STSX CMFSEXTOT CMFSEXTOT2 CMFSEXTOT3 
+  PARTDUR1 PARTDUR2 PARTDUR3
+  STILFPSX PCURRNT PCURRNT2 PCURRNT3 
+  LSEXPAGE USELSTP LSTMTHP1 LSTMTHP2 LSTMTHP3 LSTMTHP4 
+  CONDOMR PST4WKSX PSWKCOND1 P12MOCON
+   LSTMTHP1 LSTMTHP2 LSTMTHP3 LSTMTHP4 
+   LSTMTHP5 LSTMTHP6 LSTMTHP7 LSTMTHP8 
+   LSTMTHP9 LSTMTHP10 LSTMTHP11 LSTMTHP12
+   FSTMTHP1 FSTMTHP2 FSTMTHP3 FSTMTHP4 
+   FSTMTHP5 FSTMTHP6 FSTMTHP7 FSTMTHP8 
+   FSTMTHP9 FSTMTHP10 FSTMTHP11 FSTMTHP12
+  HIEDUC_I HISPANIC_I RACE_I HISPRACE_I HADSEX_I LIFPRTNR_I 
+  LSEXDATE_I PARTS1YR_I  PARTDUR1_I PARTDUR2_I PARTDUR3_I 
+ BINGE12 POT12 COC12 CRACK12 CRYSTMTH12 INJECT12 
+ PARTSLIF_1 PARTS12M_1 PARTSLIF_2 PARTS12M_2 NEWYEAR NEWLIFE 
+ VAGSEX VAGNUM12 CONDVAG ANALSEX ANALNUM12 CONDANAL
+ GETORALM GIVORALM  ANYORAL  ORALNUM12 CONDFELL
+ PST4WKSX PSWKCOND1 PSWKCOND2 CONDOM
+ OPPSEXANY OPPSEXGEN OPPLIFENUM OPPYEARNUM CONDSEXL 
+ NONMONOG BISEXPRT MALSHT12 PROSTFRQ JOHNFREQ HIVMAL12 
+ SAMESEXANY SAMLIFENUM SAMYEARNUM FEMPARTS_1 FEMPRT12_1 
+ GETORALF GIVORALF  ATTRACT ORIENT
+  NNONMONOG1 NNONMONOG2 NNONMONOG3 MFLASTP
+ CHLAMTST STDOTHR12 STDTRT12 GON CHLAM HERPES GENWARTS SYPHILIS 
+ CMHIVTST EVHIVTST 
+  optype1 to once3 optype1 to optype3 rels1 to rels3 ndlsyr lastpage
+  condls1 condfs1 condls2 condfs2 condls3 condfs3 sex4wk cond4wk.
+
+
+
+
+
+
+
+
+
+

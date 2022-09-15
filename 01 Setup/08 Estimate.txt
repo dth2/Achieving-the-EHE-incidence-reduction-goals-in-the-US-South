@@ -1,0 +1,483 @@
+# Script is writed in R
+# Estimate the 4 temporal exponential random graph models for the main and casual heterosexual and MSM networks.
+# Estimate the 2 exponential random graph models for the one-time heterosexual and MSM networks.
+
+# Estimate the C30 networks
+load("~/concept30_south/ARTnet_comp/data/l_msm.rda")
+load("~/concept30_south/NSFG/data/l_het.rda")
+l<-rbind(l_msm,l_het)
+
+load("~/concept30_south/est/netparams.rda")
+load("~/concept30_south/est/netstats.rda")
+
+
+#Initialize network using `netstats` .
+num <- netstats$demog$num
+nw <- network::network.initialize(num, directed = FALSE)
+attr.names <- names(netstats$attr)
+attr.values <- netstats$attr
+nw <- network::set.vertex.attribute(nw, attr.names, attr.values)
+#nw_main.het <- nw_casl.het <- nw_inst.het <- nw
+#nw_.msm <- nw_msm.het <- nw_msm.het <- nw
+save(nw,file = "~/concept30_south/est/nw.rda")
+
+
+ lmain <- l[l$ptype == 1, ]
+ lmain$ar.cat<-paste(lmain$age.grp,lmain$race3)
+ lmain$p_ar.cat<-paste(lmain$p_age.grp,lmain$p_race3)
+ table(lmain$ar.cat,lmain$p_ar.cat)
+ dem.matrix.mh <-table(lmain$ar.cat,lmain$p_ar.cat)
+ dem.matrix.mh[dem.matrix.mh==0]<-.5
+ dem.matrix.mh
+ setwd("~/concept30_south")
+ save(dem.matrix.mh, file = "dem.matrix.mh.rda")
+
+
+
+# Main HET Model
+nw_main.het <- nw
+
+#Formula:
+model_main.het <- ~edges +
+  nodematch("age.grp", diff = TRUE) +
+  nodefactor("age.grp", levels = -1) +
+  absdiff(~age + 2.0*(sex == 2)) +
+  nodematch("race", diff = TRUE) +
+  nodefactor("race", levels = -1) +
+  nodefactor("deg.casl.c.het", levels = -1) +
+  nodefactor("age15", levels = -1) +
+  concurrent +
+  degrange(from = 3) +
+  offset(nodematch("sex", diff = FALSE)) +
+  offset(nodefactor("het", levels = -2))
+
+
+
+# Target Stats
+netstats_main.het <- c(
+  edges = netstats$main.het$edges,
+  nodematch_age.grp = netstats$main.het$nodematch_age.grp,
+  nodefactor_age.grp = netstats$main.het$nodefactor_age.grp[-1],
+  absdiff_age = netstats$main.het$absdiff_age,
+  nodematch_race = netstats$main.het$nodematch_race,
+  nodefactor_race = netstats$main.het$nodefactor_race[-1],
+  nodefactor_deg.casl.het = netstats$main.het$nodefactor_deg.casl.c[-1],
+  nodefactor_age15 = netstats$main.het$nodefactor_age15[-1],
+  concurrent = netstats$main.het$concurrent,
+  degrange = 0
+)
+cbind(netstats_main.het)
+netstats_main.het <- unname(netstats_main.het)
+
+# Fit model
+
+st <- Sys.time()
+
+##TRY adding het and discord
+
+fit_main.het <- netest(nw_main.het,
+                       formation = model_main.het,
+                       coef.form = c(-Inf, -Inf),
+                       target.stats = netstats_main.het,
+                       coef.diss = netstats$main.het$diss.byage,
+                       constraints = ~bd(maxout = 2) + blocks(attr = ~sex, levels2 = diag(TRUE, 2)),
+                       verbose = TRUE,
+                       set.control.ergm = list(SAN.prop = ~strat(attr = ~paste(age.grp, race), pmat=dem.matrix.mh) + sparse,
+                                               MCMC.prop = ~strat(attr = ~paste(age.grp, race, het), empirical = TRUE) + sparse,
+                                      init.method = "MPLE",
+                                      MCMLE.effectiveSize=NULL,
+                                      MCMC.burnin=1e6,
+                                      MCMC.interval=1e5,
+                                      MCMC.samplesize=10000,
+                                      init.MPLE.samplesize = 2e8,
+                                      MPLE.constraints.ignore = TRUE,
+                                      parallel = 10,
+                                      SAN.nsteps = 2e8))
+
+et <- Sys.time()
+print(et - st)
+
+save(fit_main.het,file = "~/concept30_south/est/fit_main.het.rda")
+nw_main.het <- NULL
+fit_main.het <- NULL
+
+
+# Casual Model
+load("~/concept30_south/est/nw.rda")
+nw_casl.het <- nw
+lcasl <- l[l$ptype == 2, ]
+lcasl$ar.cat<-paste(lcasl$age.grp,lcasl$race3)
+lcasl$p_ar.cat<-paste(lcasl$p_age.grp,lcasl$p_race3)
+table(lcasl$ar.cat,lcasl$p_ar.cat)
+dem.matrix.ch<-table(lcasl$ar.cat,lcasl$p_ar.cat)
+dem.matrix.ch[dem.matrix.ch==0]<-.5
+dem.matrix.ch
+setwd("~/concept30_south")
+save(dem.matrix.ch, file = "dem.matrix.ch.rda")
+
+
+# Formula
+model_casl <- ~edges +
+  nodematch("age.grp", diff = TRUE) +
+  nodefactor("age.grp", levels = -6) +
+  absdiff(~age + 2.0*(sex == 2)) +
+  nodefactor("deg.main.c.het", levels = -1) +
+  concurrent +
+  degrange(from = 4) +
+  #If race = TRUE:
+  nodematch("race", diff = TRUE) +
+  nodefactor("race", levels = -1) +
+  nodefactor("age15", levels = -1) +
+  offset(nodematch("sex", diff = FALSE)) +
+  offset(nodefactor("het", levels = -2))
+
+# Target Stats
+netstats_casl <- c(
+  edges = netstats$casl.het$edges,
+  nodematch_age.grp = netstats$casl.het$nodematch_age.grp,
+  nodefactor_age.grp = netstats$casl.het$nodefactor_age.grp[-6],
+  absdiff_age = netstats$casl.het$absdiff_age,
+  nodefactor_deg.main.c.het = netstats$casl.het$nodefactor_deg.main.c[-1],
+  concurrent = netstats$casl.het$concurrent,
+  degrange = 0,
+  #If race = TRUE:
+  nodematch_race = netstats$casl.het$nodematch_race,
+  nodefactor_race = netstats$casl.het$nodefactor_race[-1],
+  nodefactor_age15 = netstats$casl.het$nodefactor_age15[-1]
+)
+cbind(netstats_casl)
+netstats_casl <- unname(netstats_casl)
+
+st <- Sys.time()
+# Fit model
+fit_casl.het <- netest(nw_casl.het,
+                   formation = model_casl,
+                   target.stats = netstats_casl,
+                   coef.form = c(-Inf, -Inf),
+                   coef.diss = netstats$casl.het$diss.byage,
+                   constraints = ~ blocks(attr = ~sex, levels2 = diag(TRUE, 2)),
+                   set.control.ergm = list(SAN.prop = ~strat(attr = ~paste(age.grp, race), pmat=dem.matrix.ch) + sparse,
+                                           MCMC.prop = ~strat(attr = ~paste(age.grp, race), empirical = TRUE) + sparse,
+                                           init.method = "MPLE",
+                                           MCMLE.effectiveSize=NULL,
+                                           MCMC.burnin=1e6,
+                                           MCMC.interval=1e5,
+                                           MCMC.samplesize=7500,
+                                           init.MPLE.samplesize = 2e8,
+                                           MPLE.constraints.ignore = TRUE,
+                                           parallel = 10,
+                                           SAN.nsteps = 2e8,
+                                           SAN.maxit = 4))
+
+
+et <- Sys.time()
+print(et - st)
+
+save(fit_casl.het,file = "~/concept30_south/est/fit_casl.het.rda")
+nw_casl.het <- NULL
+fit_casl.het <- NULL
+
+
+
+# One-Off HET Model
+
+load("~/concept30_south/est/nw.rda")
+nw_inst.het <- nw
+linst <- l[l$ptype == 3, ]
+linst$ar.cat<-paste(linst$age.grp,linst$race3)
+linst$p_ar.cat<-paste(linst$p_age.grp,linst$p_race3)
+table(linst$ar.cat,linst$p_ar.cat)
+dem.matrix.ih<-table(linst$ar.cat,linst$p_ar.cat)
+dem.matrix.ih[dem.matrix.ih==0]<-.5
+dem.matrix.ih
+setwd("~/concept30_south")
+save(dem.matrix.ih, file = "dem.matrix.ih.rda")
+
+
+# Formula
+model_inst <- ~edges +
+  nodematch("age.grp", diff = FALSE) +
+  nodefactor("age.grp", levels = c(-5,-6)) +
+  absdiff(~age + 2.0*(sex == 2)) +
+  nodefactor("risk.grp", levels = 5) +
+  nodefactor("deg.tot.c.het", levels = -1) +
+  nodematch("race", diff = TRUE) +
+  nodefactor("race", levels = -3) +
+  offset(nodematch("sex", diff = FALSE)) +
+  offset(nodefactor("het", levels = -2))
+
+  # Target Stats
+netstats_inst <- c(
+  edges = netstats$inst.het$edges,
+  nodematch_age.grp = sum(netstats$inst.het$nodematch_age.grp),
+  nodefactor_age.grp = netstats$inst.het$nodefactor_age.grp[c(-5,-6)],
+  absdiff_age = netstats$inst.het$absdiff_age,
+  nodefactor_risk.grp = netstats$inst.het$nodefactor_risk.grp[5],
+  nodefactor_deg.tot.c.het = netstats$inst.het$nodefactor_deg.tot.c.het[-1],
+  nodematch_race = netstats$inst.het$nodematch_race,
+  nodefactor_race = netstats$inst.het$nodefactor_race[-3]
+  )
+cbind(netstats_inst)
+netstats_inst <- unname(netstats_inst)
+
+# Fit model
+fit_inst.het <- netest(nw_inst.het,
+                   formation = model_inst,
+                   target.stats = netstats_inst,
+                   coef.form = c(-Inf, -Inf),
+                   coef.diss = dissolution_coefs(~offset(edges), 1),
+                   constraints = ~ blocks(attr = ~sex, levels2 = diag(TRUE, 2)),
+                   verbose = TRUE,
+                   set.control.ergm = list(SAN.prop = ~strat(attr = ~paste(age.grp, race), pmat=dem.matrix.ih) + sparse,
+                                           MCMC.prop = ~strat(attr = ~paste(age.grp, race), empirical = TRUE) + sparse,
+                                           init.method = "MPLE",
+                                           MCMLE.effectiveSize=NULL,
+                                           MCMC.burnin=1e6,
+                                           MCMC.interval=1e5,
+                                           MCMC.samplesize=8500,
+                                           init.MPLE.samplesize = 2e8,
+                                           MPLE.constraints.ignore = TRUE,
+                                           parallel = 10,
+                                           SAN.nsteps = 3e8,
+                                           SAN.maxit = 6))
+
+
+
+
+save(fit_inst.het,file = "~/concept30_south/est/fit_inst.het.rda")
+nw_inst.het <- NULL
+fit_inst.het <- NULL
+
+
+# Main MSM Model
+load("~/concept30_south/est/nw.rda")
+nw_main.msm <- nw
+linst <- l[l$ptype == 4, ]
+linst$ar.cat<-paste(linst$age.grp,linst$race3)
+linst$p_ar.cat<-paste(linst$p_age.grp,linst$p_race3)
+table(linst$ar.cat,linst$p_ar.cat)
+dem.matrix.mm<-table(linst$ar.cat,linst$p_ar.cat)
+dem.matrix.mm[dem.matrix.mm==0]<-.5
+dem.matrix.mm
+setwd("~/concept30_south")
+save(dem.matrix.mm, file = "dem.matrix.mm.rda")
+
+
+
+#Formula:
+model_main.msm <- ~edges +
+  nodematch("age.grp", diff = TRUE) +
+  nodefactor("age.grp", levels = -1) +
+  absdiff("sqrt.age") +
+  nodematch("race", diff = TRUE) +
+  nodefactor("race", levels = -1) +
+  nodefactor("deg.casl.c.msm", levels = -1) +
+  nodefactor("age15", levels = -1) +
+  concurrent +
+  degrange(from = 3) +
+  nodematch("role.class", diff = TRUE, levels = 1:2) +
+  offset(nodefactor("msm", levels = -2))
+
+
+
+# Target Stats
+netstats_main.msm <- c(
+  edges = netstats$main.msm$edges,
+  nodematch_age.grp = netstats$main.msm$nodematch_age.grp,
+  nodefactor_age.grp = netstats$main.msm$nodefactor_age.grp[-1],
+  absdiff_sqrt.age = netstats$main.msm$absdiff_sqrt.age,
+  nodematch_race = netstats$main.msm$nodematch_race,
+  nodefactor_race = netstats$main.msm$nodefactor_race[-1],
+  nodefactor_deg.casl.msm = netstats$main.msm$nodefactor_deg.casl.c[-1],
+  nodefactor_age15 = netstats$main.msm$nodefactor_age15[-1],
+  concurrent = netstats$main.msm$concurrent,
+  degrange = 0,
+  nodematch_role.class = c(0, 0)
+)
+cbind(netstats_main.msm)
+netstats_main.msm <- unname(netstats_main.msm)
+
+# Fit model
+
+st <- Sys.time()
+
+fit_main.msm <- netest(nw_main.msm,
+                       formation = model_main.msm,
+                       coef.form = -Inf,
+                       target.stats = netstats_main.msm,
+                       coef.diss = netstats$main.msm$diss.byage,
+                       constraints = ~bd(maxout = 2),
+                       verbose = TRUE,
+                       set.control.ergm = list(SAN.prop = ~strat(attr = ~paste(age.grp, race), pmat=dem.matrix.mm) + sparse,
+                                               MCMC.prop = ~strat(attr = ~paste(age.grp, race), empirical = TRUE) + sparse,
+                                               init.method = "MPLE",
+                                               MCMLE.effectiveSize=NULL,
+                                               MCMC.burnin=1e6,
+                                               MCMC.interval=1e5,
+                                               MCMC.samplesize=10000,
+                                               init.MPLE.samplesize = 2e8,
+                                               MPLE.constraints.ignore = TRUE,
+                                               parallel = 10,
+                                               SAN.nsteps = 2e8))
+
+et <- Sys.time()
+print(et - st)
+
+save(fit_main.msm,file = "~/concept30_south/est/fit_main.msm.rda")
+nw_main.msm <- NULL
+fit_main.msm <- NULL
+
+
+# MSM Casual Model
+load("~/concept30_south/est/nw.rda")
+nw_casl.msm <- nw
+lcasl <- l[l$ptype == 5, ]
+lcasl$ar.cat<-paste(lcasl$age.grp,lcasl$race3)
+lcasl$p_ar.cat<-paste(lcasl$p_age.grp,lcasl$p_race3)
+table(lcasl$ar.cat,lcasl$p_ar.cat)
+dem.matrix.cm<-table(lcasl$ar.cat,lcasl$p_ar.cat)
+dem.matrix.cm[dem.matrix.cm==0]<-.5
+dem.matrix.cm
+setwd("~/concept30_south")
+save(dem.matrix.cm, file = "dem.matrix.cm.rda")
+
+
+# Formula
+model_casl <- ~edges +
+  nodematch("age.grp", diff = TRUE) +
+  nodefactor("age.grp", levels = c(-5,-6)) +
+  absdiff("sqrt.age") +
+  nodefactor("deg.main.c.msm", levels = -1) +
+  concurrent +
+  degrange(from = 4) +
+  nodematch("race", diff = TRUE) +
+  nodefactor("race", levels = -3) +
+  nodefactor("age15", levels = -1) +
+  nodematch("role.class", diff = TRUE, levels = 1:2) +
+  offset(nodefactor("msm", levels = -2))
+
+
+# Target Stats
+netstats_casl <- c(
+  edges = netstats$casl.msm$edges,
+  nodematch_age.grp = netstats$casl.msm$nodematch_age.grp,
+  nodefactor_age.grp = netstats$casl.msm$nodefactor_age.grp[c(-5,-6)],
+  absdiff_sqrt.age = netstats$casl.msm$absdiff_sqrt.age,
+  nodefactor_deg.main.c.msm = netstats$casl.msm$nodefactor_deg.main.c[-1],
+  concurrent = netstats$casl.msm$concurrent,
+  degrange = 0,
+  nodematch_race = netstats$casl.msm$nodematch_race,
+  nodefactor_race = netstats$casl.msm$nodefactor_race[-3],
+  nodefactor_age15 = netstats$casl.msm$nodefactor_age15[-1],
+  nodematch_role.class = c(0, 0)
+)
+cbind(netstats_casl)
+netstats_casl <- unname(netstats_casl)
+
+st <- Sys.time()
+# Fit model
+fit_casl.msm <- netest(nw_casl.msm,
+                       formation = model_casl,
+                       target.stats = netstats_casl,
+                       coef.form = -Inf,
+                       coef.diss = netstats$casl.msm$diss.byage,
+                       constraints = ~blocks(attr = ~msm, levels2 = matrix(c(TRUE, FALSE, FALSE, FALSE), 2, 2)),
+                       verbose = TRUE,
+                       set.control.ergm = list(MCMC.prop = ~strat(attr = ~paste(age.grp, race), empirical = TRUE) + sparse,
+                                               init.method = "MPLE",
+                                               MCMLE.effectiveSize=NULL,
+                                               MCMC.burnin=1e6,
+                                               MCMC.interval=1e5,
+                                               MCMC.samplesize=7500,
+                                               init.MPLE.samplesize = 2e8,
+                                               MPLE.constraints.ignore = TRUE,
+                                               parallel = 10,
+                                               SAN.nsteps = 2e8,
+                                               SAN.maxit = 10))
+
+
+
+et <- Sys.time()
+print(et - st)
+
+save(fit_casl.msm,file = "~/concept30_south/est/fit_casl.msm.rda")
+fit_casl.msm <- NULL
+nw_casl.msm <- NULL
+
+
+
+# One-Off MSM Model
+
+nw_inst.msm <- nw
+linst <- l[l$ptype == 6, ]
+linst$ar.cat<-paste(linst$age.grp,linst$race3)
+linst$p_ar.cat<-paste(linst$p_age.grp,linst$p_race3)
+table(linst$ar.cat,linst$p_ar.cat)
+dem.matrix.im<-table(linst$ar.cat,linst$p_ar.cat)
+dem.matrix.im[dem.matrix.ih==0]<-.5
+dem.matrix.im
+setwd("~/concept30_south")
+save(dem.matrix.im, file = "dem.matrix.im.rda")
+
+
+# Formula
+model_inst <- ~edges +
+  nodematch("age.grp", diff = FALSE) +
+  nodefactor("age.grp", levels = -1) +
+  absdiff("sqrt.age") +
+  nodefactor("risk.grp", levels = -5) +
+  nodefactor("deg.tot.c.msm", levels = -1) +
+  nodematch("race", diff = TRUE) +
+  nodefactor("race", levels = -1) +
+  nodematch("role.class", diff = TRUE, levels = 1:2) +
+  offset(nodefactor("msm", levels = -2))
+
+# Target Stats
+netstats_inst <- c(
+  edges = netstats$inst.msm$edges,
+  nodematch_age.grp = sum(netstats$inst.msm$nodematch_age.grp),
+  nodefactor_age.grp = netstats$inst.msm$nodefactor_age.grp[-1],
+  absdiff_sqrt.age = netstats$inst.msm$absdiff_sqrt.age,
+  nodefactor_risk.grp = netstats$inst.msm$nodefactor_risk.grp[-5],
+  nodefactor_deg.tot.c.msm = netstats$inst.msm$nodefactor_deg.tot.c.msm[-1],
+  nodematch_race = netstats$inst.msm$nodematch_race,
+  nodefactor_race = netstats$inst.msm$nodefactor_race[-1],
+  nodematch_role.class = c(0, 0)
+)
+cbind(netstats_inst)
+netstats_inst <- unname(netstats_inst)
+
+st <- Sys.time()
+# Fit model
+fit_inst.msm <- netest(nw_inst.msm,
+                       formation = model_inst,
+                       target.stats = netstats_inst,
+                       coef.form = -Inf,
+                       coef.diss = dissolution_coefs(~offset(edges), 1),
+                       constraints = ~blocks(attr = ~msm, levels2 = matrix(c(TRUE, FALSE, FALSE, FALSE), 2, 2)),
+                       set.control.ergm = list(MCMC.prop = ~strat(attr = ~paste(age.grp, race), empirical = TRUE) + sparse,
+                                               init.method = "MPLE",
+                                               MCMLE.effectiveSize=NULL,
+                                               MCMC.burnin=1e6,
+                                               MCMC.interval=1e5,
+                                               MCMC.samplesize=7500,
+                                               init.MPLE.samplesize = 2e8,
+                                               MPLE.constraints.ignore = TRUE,
+                                               parallel = 10,
+                                               SAN.nsteps = 2e8))
+
+
+
+
+et <- Sys.time()
+print(et - st)
+
+save(fit_inst.msm,file = "~/concept30_south/est/fit_inst.msm.rda")
+fit_inst.msm <- NULL
+nw_inst.msm <- NULL
+
+##############################################
+# 8. Save Data
+out <- list(fit_main, fit_casl, fit_inst)
+
+

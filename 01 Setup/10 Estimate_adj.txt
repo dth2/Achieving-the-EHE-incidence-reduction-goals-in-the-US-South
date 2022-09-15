@@ -1,0 +1,95 @@
+# Script
+# Reduce the size of the individual networks and combine to single est object for simulation
+# adjust coefficients for 1 time networks to be weekly rather than anual
+# adjust edges term for each model to maintain the correct edge count during simulation which can sometime 
+# be off even after standard ERGM and TERGM diagnostics due to changeing poulation composition, mortality and edge deletion when nodes age out
+
+library(EpiModelHIV)
+library(EpiModelHPC)
+
+##HET networks
+load("~/concept30_south/est/fit_main.het.rda")
+#fit_main.het$fit$network <- NULL
+fit_main.het$fit$newnetworks <- NULL
+
+fit_main.het$coef.form[1] <- fit_main.het$coef.form[1] + .171
+fit_main.het$coef.form.crude[1] <- fit_main.het$coef.form.crude[1] + .171
+fit_main.het$fit$coef[1] <- fit_main.het$fit$coef[1] + .171
+
+load("~/concept30_south/est/fit_casl.het.rda")
+#fit_casl.het$fit$network <- NULL
+fit_casl.het$fit$newnetworks <- NULL
+
+fit_casl.het$coef.form[1] <- fit_casl.het$coef.form[1] - .131
+fit_casl.het$coef.form.crude[1] <- fit_casl.het$coef.form.crude[1] - .131
+fit_casl.het$fit$coef[1] <- fit_casl.het$fit$coef[1] - .131
+
+load("~/concept30_south/est/fit_inst.het.rda")
+#fit_inst.het$fit$network <- NULL
+fit_inst.het$fit$newnetworks <- NULL
+
+fit_inst.het$coef.form[1] <- fit_inst.het$coef.form[1] + -log(52)
+fit_inst.het$coef.form.crude[1] <- fit_inst.het$coef.form.crude[1] + -log(52)
+fit_inst.het$fit$coef[1] <- fit_inst.het$fit$coef[1] + -log(52)
+
+
+##MSM networks
+load("~/concept30_south/est/fit_main.msm.rda")
+#fit_main.msm$fit$network <- NULL
+fit_main.msm$fit$newnetworks <- NULL
+
+fit_main.msm$coef.form[1] <- fit_main.msm$coef.form[1] + 1.03
+fit_main.msm$coef.form.crude[1] <- fit_main.msm$coef.form.crude[1] + 1.03
+fit_main.msm$fit$coef[1] <- fit_main.msm$fit$coef[1] + 1.03
+
+load("~/concept30_south/est/fit_casl.msm.rda")
+#fit_casl.msm$fit$network <- NULL
+fit_casl.msm$fit$newnetworks <- NULL
+
+fit_casl.msm$coef.form[1] <- fit_casl.msm$coef.form[1] + 1.01
+fit_casl.msm$coef.form.crude[1] <- fit_casl.msm$coef.form.crude[1] + 1.01
+fit_casl.msm$fit$coef[1] <- fit_casl.msm$fit$coef[1] + 1.01
+
+load("~/concept30_south/est/fit_inst.msm.rda")
+#fit_inst.msm$fit$network <- NULL
+fit_inst.msm$fit$newnetworks <- NULL
+
+fit_inst.msm$coef.form[1] <- fit_inst.msm$coef.form[1] + -log(52) + 1.52
+fit_inst.msm$coef.form.crude[1] <- fit_inst.msm$coef.form.crude[1] + -log(52) + 1.52
+fit_inst.msm$fit$coef[1] <- fit_inst.msm$fit$coef[1] + -log(52) + 1.52
+
+
+###########################################################################
+##  TRIMMING
+fit_main.msm$fit$newnetworks <- NULL
+fit_casl.msm$fit$newnetworks <- NULL
+fit_inst.msm$fit$newnetworks <- NULL
+
+fit_main.msm$coef.diss$dissolution <- trim_env(fit_main.msm$coef.diss$dissolution)
+fit_casl.msm$coef.diss$dissolution <- trim_env(fit_casl.msm$coef.diss$dissolution)
+fit_inst.msm$coef.diss$dissolution <- trim_env(fit_inst.msm$coef.diss$dissolution)
+
+fit_main.msm$fit$formula <- trim_env(fit_main.msm$fit$formula)
+fit_casl.msm$fit$formula <- trim_env(fit_casl.msm$fit$formula)
+fit_inst.msm$fit$formula <- trim_env(fit_inst.msm$fit$formula)
+
+
+fit_main.het$fit$newnetworks <- NULL
+fit_casl.het$fit$newnetworks <- NULL
+fit_inst.het$fit$newnetworks <- NULL
+
+fit_main.het$coef.diss$dissolution <- trim_env(fit_main.het$coef.diss$dissolution)
+fit_casl.het$coef.diss$dissolution <- trim_env(fit_casl.het$coef.diss$dissolution)
+fit_inst.het$coef.diss$dissolution <- trim_env(fit_inst.het$coef.diss$dissolution)
+
+fit_main.het$fit$formula <- trim_env(fit_main.het$fit$formula)
+fit_casl.het$fit$formula <- trim_env(fit_casl.het$fit$formula)
+fit_inst.het$fit$formula <- trim_env(fit_inst.het$fit$formula)
+
+
+##############################################
+#  Save EST
+est <- list(fit_main.het, fit_casl.het, fit_inst.het, fit_main.msm, fit_casl.msm, fit_inst.msm)
+save(est,file = "~/concept30_south/est/esttemp.rda")
+save(est,file = "~/concept30_south/scenarios/calib/est/esttemp.rda")
+

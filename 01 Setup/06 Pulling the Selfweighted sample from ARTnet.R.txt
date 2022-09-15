@@ -1,0 +1,450 @@
+# This script is intended to be run in R. 
+# The script contructs consistent varaiable names with the NSFG and placeholders for variable specifric to the heterosexual population in the simulation.
+# A selfweighted sample is taken to represent the MSM in our simulated population of 500K.
+# Sampling is stochastic so it may require mutiple draw to generate a realization with the same age and race composition as males in the south from the 2018 census. 
+# Degree terms and act rates are also defined.
+
+#Inputs ARTnet_wide.rda and ARTnet_long.rda - These files are created automatically with the ARTnet R package
+#Output the wide respondent based data set (d_msm.rda) and the long partnership based data set (l_msm.rda)
+
+#Weighting ARTnet sample for south
+library(devtools)
+library(EpiModel)
+library(dplyr)
+
+setwd("~/concept30_south/ARTnet_comp")
+load("~/concept30_south/ARTnet_comp/data/ARTnet_wide.rda")
+load("~/concept30_south/ARTnet_comp/data/ARTnet_long.rda")
+
+#Make three category race variable
+d$race3 <- rep(NA,length(d$age))
+d$race3[d$race.cat == "black"] <- 1
+d$race3[d$race.cat == "hispanic"] <- 2
+d$race3[d$race.cat == "other"] <- 3
+d$race3[d$race.cat == "white"] <- 3
+
+#Make age category variable
+d$age.grp <- rep(NA,length(d$age))
+d$age.grp[d$age < 19] <- 1
+d$age.grp[d$age >= 19 & d$age < 25] <- 2
+d$age.grp[d$age >= 25 & d$age < 35] <- 3
+d$age.grp[d$age >= 35 & d$age < 45] <- 4
+d$age.grp[d$age >= 45 & d$age < 55] <- 5
+d$age.grp[d$age >= 55] <- 6
+
+d$sqrt.age <- sqrt(d$age)
+
+d$fpart <- rep(0,length(d$age))
+d$fpart[d$M_FSXB==1] <- 1
+d$fpart[d$M_FSXC==1] <- 1
+d$fpart[d$FP_VAGIN==1] <- 1
+d$fpart[d$FP_ANAL==1] <- 1
+
+d$msm <- rep(1,length(d$age))
+d$het <- rep(0,length(d$age))
+d$het[d$fpart==1] <- 1
+d$sex <- rep(1,length(d$age))
+
+d$role.class <- rep(NA,length(d$age))
+
+d <- l %>%
+  filter(RAI == 1) %>%
+  group_by(AMIS_ID) %>%
+  count() %>%
+  rename(nRAIpart = n) %>%
+  right_join(d, by = "AMIS_ID") %>%
+  as.data.frame()
+d$nRAIpart <- ifelse(is.na(d$nRAIpart), 0, d$nRAIpart)
+table(d$nRAIpart, useNA = "always")
+
+d <- l %>%
+  filter(IAI == 1) %>%
+  group_by(AMIS_ID) %>%
+  count() %>%
+  rename(nIAIpart = n) %>%
+  right_join(d, by = "AMIS_ID") %>%
+  as.data.frame()
+d$nIAIpart <- ifelse(is.na(d$nIAIpart), 0, d$nIAIpart)
+
+# default NA for no AI
+roletype <- rep(NA, nrow(d))
+roletype[d$nRAIpart == 0 & d$nIAIpart > 0] <- 1
+roletype[d$nIAIpart == 0 & d$nRAIpart > 0] <- 2
+roletype[d$nIAIpart > 0 & d$nRAIpart > 0] <- 3
+# table(roletype, useNA = "always")
+
+d$role.class<-roletype
+
+role.type <- prop.table(table(roletype))
+role.n <-which(is.na(d$role.class==TRUE))
+d$role.class[role.n] <-sample(c(1:3), length(role.n), prob = role.type, replace = TRUE)
+
+##deg.main and deg.casl
+
+c1<-which(d$PART1MAIN_ONG==1 & d$PART1ONGOING==1 & (d$PART1RAI == 1 | d$PART1IAI == 1))
+c2<-which(d$PART2MAIN_ONG==1 & d$PART2ONGOING==1 & (d$PART2RAI == 1 | d$PART2IAI == 1))
+c3<-which(d$PART3MAIN_ONG==1 & d$PART3ONGOING==1 & (d$PART3RAI == 1 | d$PART3IAI == 1))
+c4<-which(d$PART4MAIN_ONG==1 & d$PART4ONGOING==1 & (d$PART4RAI == 1 | d$PART4IAI == 1))
+c5<-which(d$PART5MAIN_ONG==1 & d$PART5ONGOING==1 & (d$PART5RAI == 1 | d$PART5IAI == 1))
+
+p1<-which(d$PART1MAIN_ONG==0 & d$PART1ONGOING==1 & (d$PART1RAI == 1 | d$PART1IAI == 1))
+p2<-which(d$PART2MAIN_ONG==0 & d$PART2ONGOING==1 & (d$PART2RAI == 1 | d$PART2IAI == 1))
+p3<-which(d$PART3MAIN_ONG==0 & d$PART3ONGOING==1 & (d$PART3RAI == 1 | d$PART3IAI == 1))
+p4<-which(d$PART4MAIN_ONG==0 & d$PART4ONGOING==1 & (d$PART4RAI == 1 | d$PART4IAI == 1))
+p5<-which(d$PART5MAIN_ONG==0 & d$PART5ONGOING==1 & (d$PART5RAI == 1 | d$PART5IAI == 1))
+
+d$deg.main.msm <- rep(0, length(d$age))
+d$deg.main.msm[c1] <- d$deg.main.msm[c1]+1
+d$deg.main.msm[c2] <- d$deg.main.msm[c2]+1
+d$deg.main.msm[c3] <- d$deg.main.msm[c3]+1
+d$deg.main.msm[c4] <- d$deg.main.msm[c4]+1
+d$deg.main.msm[c5] <- d$deg.main.msm[c5]+1
+
+d$deg.casl.msm <- rep(0, length(d$age))
+d$deg.casl.msm[p1] <- d$deg.casl.msm[p1]+1
+d$deg.casl.msm[p2] <- d$deg.casl.msm[p2]+1
+d$deg.casl.msm[p3] <- d$deg.casl.msm[p3]+1
+d$deg.casl.msm[p4] <- d$deg.casl.msm[p4]+1
+d$deg.casl.msm[p5] <- d$deg.casl.msm[p5]+1
+
+# recoding to truncate degree
+d$deg.casl.msm <- ifelse(d$deg.casl.msm > 3, 3, d$deg.casl.msm)
+d$deg.main.msm <- ifelse(d$deg.main.msm > 2, 2, d$deg.main.msm)
+
+d$deg.tot.msm <- d$deg.main.msm + d$deg.casl.msm
+
+
+# Concurrency
+d$deg.main.conc.msm <- ifelse(d$deg.main.msm > 1, 1, 0)
+d$deg.casl.conc.msm <- ifelse(d$deg.casl.msm > 1, 1, 0)
+
+d$deg.main.het <- rep(0,length(d$age))
+d$deg.casl.het <- rep(0,length(d$age))
+d$deg.tot.het <- rep(0,length(d$age))
+d$deg.main.conc.het <- rep(0,length(d$age))
+d$deg.casl.conc.het <- rep(0,length(d$age))
+
+## one-off calcs ##
+
+# Total MC anal sex partner count
+d <- l %>%
+  filter(RAI == 1 | IAI == 1) %>%
+  filter(ptype %in% 1:2) %>%
+  group_by(AMIS_ID) %>%
+  count() %>%
+  rename(count.mc.part = n) %>%
+  right_join(d, by = "AMIS_ID")
+d$count.mc.part <- ifelse(is.na(d$count.mc.part), 0, d$count.mc.part)
+
+d$count.oo.part <- d$ai.part - d$count.mc.part
+d$count.oo.part <- pmax(0, d$count.oo.part)
+d$count.oo.part <- ifelse(is.na(d$count.oo.part)==TRUE,0,d$count.oo.part)
+
+# Truncated OO part
+d$count.oo.part.trunc.msm <- ifelse(d$count.oo.part > 100, 100, d$count.oo.part)
+d$count.oo.part.trunc.het <- rep(0,length(d$age))
+
+##Risk groups based on one-time partner count
+d.sorted <- d[order(d$count.oo.part), ]
+head(d.sorted$count.oo.part)
+d.sorted$risk.grp <- rep(1:5, c(981, 981, 981, 981, 980))
+d <- d.sorted[order(d$AMIS_ID), ]
+
+
+d2 <- d
+
+table(d2$age.grp,d2$race3)
+
+#Ratios between census distribution and ARTNET
+#       Black   Hispanic	Other
+#15-18	6.2750	1.1117	1.2941
+#19-24	3.7035	0.7192	0.4888
+#25-34	2.7535	1.3034	0.6609
+#35-44	4.1134	2.4770	1.1242
+
+
+
+table(d2$fpart,d2$race3)
+
+#Ratios between census Dasgupta et al bisexual proportions and ARTNET
+# Black   Hispanic    Other
+# 1.4103	0.9923	   0.6775
+
+
+
+d2$weight <- rep(NA,length(d2$age))
+d2$weight[d2$age.grp == 1 & d2$race3 == 1 & d2$fpart == 0] <- 0.05836919
+d2$weight[d2$age.grp == 2 & d2$race3 == 1 & d2$fpart == 0] <- 0.03444811
+d2$weight[d2$age.grp == 3 & d2$race3 == 1 & d2$fpart == 0] <- 0.02429826
+d2$weight[d2$age.grp == 4 & d2$race3 == 1 & d2$fpart == 0] <- 0.03662571
+d2$weight[d2$age.grp == 5 & d2$race3 == 1 & d2$fpart == 0] <- 0.02975839
+d2$weight[d2$age.grp == 6 & d2$race3 == 1 & d2$fpart == 0] <- 0.05228454
+d2$weight[d2$age.grp == 1 & d2$race3 == 1 & d2$fpart == 1] <- 0.08922422
+d2$weight[d2$age.grp == 2 & d2$race3 == 1 & d2$fpart == 1] <- 0.05355261
+d2$weight[d2$age.grp == 3 & d2$race3 == 1 & d2$fpart == 1] <- 0.03815663
+d2$weight[d2$age.grp == 4 & d2$race3 == 1 & d2$fpart == 1] <- 0.05749711
+d2$weight[d2$age.grp == 5 & d2$race3 == 1 & d2$fpart == 1] <- 0.0421315
+d2$weight[d2$age.grp == 6 & d2$race3 == 1 & d2$fpart == 1] <- 0.07831502
+
+d2$weight[d2$age.grp == 1 & d2$race3 == 2 & d2$fpart == 0] <- 1.1117/100 * ((1 - (((1 + 0.9923)/2)-1)) * .99)
+d2$weight[d2$age.grp == 2 & d2$race3 == 2 & d2$fpart == 0] <- 0.7192/100 * ((1 - (((1 + 0.9923)/2)-1)) * .995)
+d2$weight[d2$age.grp == 3 & d2$race3 == 2 & d2$fpart == 0] <- 1.3034/100 * ((1 - (((1 + 0.9923)/2)-1)) * .98)
+d2$weight[d2$age.grp == 4 & d2$race3 == 2 & d2$fpart == 0] <- 2.4770/100 * (1 - (((1 + 0.9923)/2)-1))
+d2$weight[d2$age.grp == 5 & d2$race3 == 2 & d2$fpart == 0] <- 2.4770/100 * ((1 - (((1 + 0.9923)/2)-1)) * .95)
+d2$weight[d2$age.grp == 6 & d2$race3 == 2 & d2$fpart == 0] <- 2.4770/100 * ((1 - (((1 + 0.9923)/2)-1))* 1.66)
+d2$weight[d2$age.grp == 1 & d2$race3 == 2 & d2$fpart == 1] <- (1.1117/100) * (((1 + 0.9923)/2) * .93)
+d2$weight[d2$age.grp == 2 & d2$race3 == 2 & d2$fpart == 1] <- (0.7192/100) * (((1 + 0.9923)/2) * .935)
+d2$weight[d2$age.grp == 3 & d2$race3 == 2 & d2$fpart == 1] <- (1.3034/100) * (((1 + 0.9923)/2) * .93)
+d2$weight[d2$age.grp == 4 & d2$race3 == 2 & d2$fpart == 1] <- (2.4770/100) * (((1 + 0.9923)/2) * .95)
+d2$weight[d2$age.grp == 5 & d2$race3 == 2 & d2$fpart == 1] <- ((2.4770/100) * ((1 + 0.9923)/2) * .88)
+d2$weight[d2$age.grp == 6 & d2$race3 == 2 & d2$fpart == 1] <- (2.4770/100) * (((1 + 0.9923)/2) * 1.59)
+
+d2$weight[d2$age.grp == 1 & d2$race3 == 3 & d2$fpart == 0] <- ((1.2941/100) * (1 - (((1 + 0.6775)/2)-1)) * .87)
+d2$weight[d2$age.grp == 2 & d2$race3 == 3 & d2$fpart == 0] <- ((0.4888/100) * (1 - (((1 + 0.6775)/2)-1)) * .85)
+d2$weight[d2$age.grp == 3 & d2$race3 == 3 & d2$fpart == 0] <- ((0.6609/100) * (1 - (((1 + 0.6775)/2)-1)) * .88)
+d2$weight[d2$age.grp == 4 & d2$race3 == 3 & d2$fpart == 0] <- ((1.1242/100) * (1 - (((1 + 0.6775)/2)-1)) * .88)
+d2$weight[d2$age.grp == 5 & d2$race3 == 3 & d2$fpart == 0] <- ((1.1242/100) * (1 - (((1 + 0.6775)/2)-1)) * .75)
+d2$weight[d2$age.grp == 6 & d2$race3 == 3 & d2$fpart == 0] <- ((1.1242/100) * (1 - (((1 + 0.6775)/2)-1)) * .85)
+d2$weight[d2$age.grp == 1 & d2$race3 == 3 & d2$fpart == 1] <- ((1.2941/100) * ((1 + 0.6775)/2) * .74)
+d2$weight[d2$age.grp == 2 & d2$race3 == 3 & d2$fpart == 1] <- ((0.4888/100) * ((1 + 0.6775)/2) * .75)
+d2$weight[d2$age.grp == 3 & d2$race3 == 3 & d2$fpart == 1] <- ((0.6609/100) * ((1 + 0.6775)/2) * .78)
+d2$weight[d2$age.grp == 4 & d2$race3 == 3 & d2$fpart == 1] <- ((1.1242/100) * ((1 + 0.6775)/2) * .78)
+d2$weight[d2$age.grp == 5 & d2$race3 == 3 & d2$fpart == 1] <- ((1.1242/100) * ((1 + 0.6775)/2) * .68)
+d2$weight[d2$age.grp == 6 & d2$race3 == 3 & d2$fpart == 1] <- ((1.1242/100) * ((1 + 0.6775)/2) * .78)
+
+#Sampling loop
+
+d_south <- d2[1,]
+for (i in 1:8817){
+
+  obs <- sample((1:length(d2$age)),1,replace = TRUE, prob = d2$weight)
+  d_south <- rbind(d_south, d2[obs,])
+
+}
+
+d_south <- d_south[2:8817,]
+
+#output distribution
+
+table(d_south$age.grp,d_south$race3)
+
+table(d_south$fpart,d_south$race3)
+
+#Assign ego
+d_south$ego <- 1:length(d_south$age)
+d_south$ego <- d_south$ego + 491184
+
+#add vars for network model consistency with NSFG
+
+d_south$weight3 <- d_south$weight
+d_south$sqrt.age <- sqrt(d_south$age)
+
+
+
+##Make long
+
+#Make three category race variable
+l$race3 <- rep(NA,length(l$age))
+l$race3[l$race.cat == "black"] <- 1
+l$race3[l$race.cat == "hispanic"] <- 2
+l$race3[l$race.cat == "other"] <- 3
+l$race3[l$race.cat == "white"] <- 3
+
+l$p_race3 <- rep(NA,length(l$age))
+l$p_race3[l$p_race.cat == "black"] <- 1
+l$p_race3[l$p_race.cat == "hispanic"] <- 2
+l$p_race3[l$p_race.cat == "other"] <- 3
+l$p_race3[l$p_race.cat == "white"] <- 3
+
+# redistribute NAs in proportion to non-missing partner races
+probs <- prop.table(table(l$race3, l$p_race3), 1)
+
+imp_black <- which(is.na(l$p_race3) & l$race3 == 1)
+l$p_race3[imp_black] <- sample(1:3, length(imp_black), TRUE, probs[1, ])
+
+imp_hisp <- which(is.na(l$p_race3) & l$race3 == 2)
+l$p_race3[imp_hisp] <- sample(1:3, length(imp_hisp), TRUE, probs[2, ])
+
+imp_white <- which(is.na(l$p_race3) & l$race3 == 3)
+l$p_race3[imp_white] <- sample(1:3, length(imp_white), TRUE, probs[3, ])
+
+
+#Make age category variable
+l$age.grp <- rep(NA,length(l$age))
+l$age.grp[l$age < 19] <- 1
+l$age.grp[l$age >= 19 & l$age < 25] <- 2
+l$age.grp[l$age >= 25 & l$age < 35] <- 3
+l$age.grp[l$age >= 35 & l$age < 45] <- 4
+l$age.grp[l$age >= 45 & l$age < 55] <- 5
+l$age.grp[l$age >= 55] <- 6
+
+l$sqrt.age <- sqrt(l$age)
+
+#Make age category variable
+l$p_age.grp <- rep(NA,length(l$p_age))
+l$p_age.grp[l$p_age_imp < 19] <- 1
+l$p_age.grp[l$p_age_imp >= 19 & l$p_age_imp < 25] <- 2
+l$p_age.grp[l$p_age_imp >= 25 & l$p_age_imp < 35] <- 3
+l$p_age.grp[l$p_age_imp >= 35 & l$p_age_imp < 45] <- 4
+l$p_age.grp[l$p_age_imp >= 45 & l$p_age_imp < 55] <- 5
+l$p_age.grp[l$p_age_imp >= 55] <- 6
+
+l$p_sqrt.age <- sqrt(l$p_age_imp)
+l$p_age <- l$p_age_imp
+
+##Sex behavior categories
+l$het <- rep(0,length(l$p_age))
+l$msm <- rep(1,length(l$p_age))
+l$RVI <- rep(0,length(l$p_age))
+l$IVI <- rep(0,length(l$p_age))
+l$sex <- rep(1,length(l$p_age))
+l$p_sex <- rep(1,length(l$p_age))
+l$vag.acts.week <- rep(0,length(l$p_age))
+l$vag.acts.week.cp <- rep(0,length(l$p_age))
+
+l2 <- l
+l2$ego <- rep(NA,length(l2$AMIS_ID))
+l_south <- l2[1,]
+for (i in 1:length(d_south$ego)){
+
+  p <- which(l2$AMIS_ID == d_south$AMIS_ID[i])
+  if (length(p)>0){
+  parts <- l2[p,]
+  parts$ego <- d_south$ego[i]
+  l_south <- rbind(l_south, parts)}
+
+}
+
+l_south <- l_south[2:length(l_south$AMIS_ID),]
+l_south$ptype <- l_south$ptype + 3
+
+d_south$age15<-ifelse(d_south$age==15,1,0)
+
+
+save(d_south,file = "data/d_south.rda")
+save(l_south,file = "data/l_south.rda")
+
+
+
+#Make ego and alter files
+setwd("~/concept30_south/ARTnet_comp")
+load("~/concept30_south/ARTnet_comp/data/d_south.rda")
+load("~/concept30_south/ARTnet_comp/data/l_south.rda")
+
+d_south$deg.main.c.het <- rep(0,length(d_south$age))
+d_south$deg.casl.c.het <- rep(0,length(d_south$age))
+d_south$deg.tot.c.het <- rep(0,length(d_south$age))
+d_south$deg.main.c.msm <- pmin(1,d_south$deg.main.msm)
+d_south$deg.casl.c.msm <- pmin(1,d_south$deg.casl.msm)
+d_south$deg.tot.c.msm <- pmin(2,d_south$deg.tot.msm)
+
+l_south$condls <- rep(NA,length(l_south$ego))
+l_south$adol <- rep(0,length(l_south$ego))
+l_south$adol <- ifelse(l_south$age < 18 | l_south$p_age < 18 ,1 ,0)
+
+d_south$evhivtst <- d_south$EVERTEST
+d_south$tlnt <- rep(NA,length(d_south$age))
+d_south$last.test.date <- rep(NA,length(d_south$age))
+
+d_south$year <- substr(d_south$SUB_DATE,0,4)
+d_south$month <- substr(d_south$SUB_DATE,6,7)
+d_south$months<-(as.numeric(d_south$year)*12)+as.numeric(d_south$month)
+
+t.n <- which(d_south$RCNTRSLT==1)
+d_south$last.test.date[t.n] <- d_south$RCNTSTMONTH[t.n] + (12*d_south$RCNTSTYEAR[t.n])
+
+d_south$tlnt[t.n] <- d_south$months[t.n] - d_south$last.test.date[t.n]
+d_south$tlnt <- d_south$tlnt*(52/12)
+
+
+d_msm<-subset(d_south,select=c('ego', 'age', 'sqrt.age', 'age.grp', 'race3', 'sex', 'het', 'msm', 'role.class',
+                                'risk.grp', 'deg.main.het', 'deg.casl.het', 'deg.tot.het', 'deg.main.msm', 'deg.casl.msm', 'deg.tot.msm',
+                                'deg.main.conc.het', 'deg.casl.conc.het', 'deg.main.conc.msm', 'deg.casl.conc.msm',
+                               'count.oo.part.trunc.het', 'count.oo.part.trunc.msm', 'age15',
+                               'deg.main.c.het', 'deg.casl.c.het', 'deg.tot.c.het',
+                               'deg.casl.c.msm','deg.main.c.msm', 'deg.tot.c.msm', 'evhivtst', 'tlnt'))
+
+l_msm<-subset(l_south,select=c('ego', 'age', 'sqrt.age', 'age.grp', 'race3', 'sex', 'het', 'msm',
+                               'RAI', 'IAI', 'RVI', 'IVI', 'p_age', 'p_sqrt.age', 'p_age.grp', 'p_race3',
+                               'p_sex', 'ptype', 'duration',
+                               'anal.acts.week', 'anal.acts.week.cp', 'vag.acts.week', 'vag.acts.week.cp',
+                               'ONCE', 'ONGOING', 'RECUAI','INSUAI', 'condls', 'adol' ))
+
+save(d_msm,file = "data/d_msm.rda")
+save(l_msm,file = "data/l_msm.rda")
+
+
+# Spouses/Cohabs
+# alters4 <- subset(l_south,
+#                   ONGOING==1 & ptype==1,
+#                   select=c('ego', 'sex','p_age', 'p_sqrt.age', 'p_race3',
+#                            'het', 'msm', 'duration'))
+# alters4 %>%
+#   rename(
+#     p_age = age,
+#     sepal_width = Sepal.Width
+#   )
+#
+# # Others
+# alters5 <- subset(alters,
+#                   active==1 & ptype==2,
+#                   select=c('ego', 'sex','age', 'sqrt.age', 'race3',
+#                            'het', 'msm', 'duration'))
+#
+# # One-Times
+# alters6 <- subset(alters,
+#                   once==1 & active!=1,
+#                   select=c('ego', 'sex','age', 'sqrt.age', 'race3',
+#                            'het', 'msm', 'duration'))
+#
+#
+# # Check to see is the alters are all captured
+# (nsfg_alt <- nrow(alters))
+# nsfg_alt_split <- c(nrow(alters1), nrow(alters2), nrow(alters3))
+#
+# sum(nsfg_alt_split)
+#
+# save(het_south,file = "het_south_clean.rda")
+#
+# # Make a list object
+# msm_south_egodata <- list(egos=subset(msm_south, select=c('weight3', 'ego', 'sex', 'age', 'sqrt.age',
+#                                                           'race3', 'het', 'msm', 'role.class', 'deg.main',
+#                                                           'deg.casl', 'riskg', 'age.grp')),
+#                           msm_altersCohab=alters4, msm_alterscasl=alters5,
+#                           msm_altersOT=alters6)
+#
+# save(msm_south_egodata,file = "msm_south_egodata.rda")
+#
+
+#Ego needs (weight3 ego sex age sqrt.age age.grp race3 het msm role.class deg.main deg.casl risk.g )
+
+#Alter needs (ego needs ego sex age sqrt.age age.grp race3 het msm role.class len)
+
+
+
+
+###DURATIONS AND One time rates
+
+# weekly rate
+d$rate.oo.part <- d$count.oo.part/52
+# summary(d$rate.oo.part)
+
+wt.rate <- d$rate.oo.part
+
+nquants <- 5
+oo.quants <- rep(NA, nquants)
+sr <- sort(wt.rate)
+qsize <- floor(length(sr) / nquants)
+for (i in 1:nquants) {
+  if (i == 1) {
+    oo.quants[i] <- mean(sr[1:qsize])
+  } else if (i > 1 & i < nquants) {
+    oo.quants[i] <- mean(sr[(((i - 1)*qsize) + 1):(i*qsize)])
+  } else if (i == nquants) {
+    oo.quants[i] <- mean(sr[(((i - 1)*qsize) + 1):length(sr)])
+  }
+}
+
+# Weekly acquisition rate
+oo.quants
+

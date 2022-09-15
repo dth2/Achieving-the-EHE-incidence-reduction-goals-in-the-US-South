@@ -1,0 +1,234 @@
+* EHE NSFG data preperation script for the males
+* This script is meant to be run as an SPSS script.
+* The script is used to update some demographic variables and partner variables for consistency across data sources and
+* Un-needed variables are dropped from the data set
+* Un-needed variables are dropped from the data set
+* Inputs: NSFGsexnet2011_17m.sav
+* outputs: NSFGsexnet2011_17m_reduced.sav
+
+
+GET
+  FILE='H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017\NSFGsexnet2011_17m.sav'.
+DATASET NAME DataSet2 WINDOW=FRONT.
+
+*  Select off males who are only attracted to other males.
+FILTER OFF.
+USE ALL.
+SELECT IF (ATTRACT ~= 5).
+EXECUTE.
+
+* Set race to NH-Black, Hispanic, Other
+
+
+RECODE HISPRACE (1=2) (3=1) (2=3) (4=3) (SYSMIS=SYSMIS) INTO RACE3.
+VARIABLE LABELS  RACE3 'Three catagory race'.
+EXECUTE.
+
+val lab
+RACE3
+  1 'BLACK' 
+  2 'HISPANIC'
+  3 'OTHER'.
+
+
+RECODE prace1 (1=2) (3=1) (2=3) (4=3) (5=5) (6=6) (8=8) (9=9) (SYSMIS=SYSMIS) INTO prace1.
+VARIABLE LABELS  prace1 'partner 1 three catagory race'.
+EXECUTE.
+
+val lab
+prace1
+  1 'BLACK' 
+  2 'HISPANIC'
+  3 'OTHER'
+  5 'Not asked'
+  6 'Fewer partners'
+  8 'Never had sex'
+  9 'miss/dk/ref'.
+
+RECODE prace2 (1=2) (3=1) (2=3) (4=3) (5=5) (6=6) (8=8) (9=9) (SYSMIS=SYSMIS) INTO prace2.
+VARIABLE LABELS  prace2 'partner 2 three catagory race'.
+EXECUTE.
+
+val lab
+prace2
+  1 'BLACK' 
+  2 'HISPANIC'
+  3 'OTHER'
+  5 'Not asked'
+  6 'Fewer partners'
+  8 'Never had sex'
+  9 'miss/dk/ref'.
+
+RECODE prace3 (1=2) (3=1) (2=3) (4=3) (5=5) (6=6) (8=8) (9=9) (SYSMIS=SYSMIS) INTO prace3.
+VARIABLE LABELS  prace3 'partner 3 three catagory race'.
+EXECUTE.
+
+val lab
+prace1
+  1 'BLACK' 
+  2 'HISPANIC'
+  3 'OTHER'
+  5 'Not asked'
+  6 'Fewer partners'
+  8 'Never had sex'
+  9 'miss/dk/ref'.
+
+
+
+
+compute c.1=0.
+compute c.2=0.
+compute c.3=0.
+compute deg.cohab=0.
+execute.
+
+do if
+(optype1=1 or optype1=2) AND active1=1.
+compute c.1=1.
+end if.
+execute.
+
+do if
+(optype2=1 or optype2=2) AND active2=1.
+compute c.2=1.
+end if.
+Execute.
+
+do if
+(optype3=1 or optype3=2) AND active3=1.
+compute c.3=1.
+end if.
+execute.
+
+compute deg.cohab = sum(c.1,c.2,c.3).
+execute.
+
+compute p.1=0.
+compute p.2=0.
+compute p.3=0.
+compute deg.pers=0.
+execute.
+
+do if
+(optype1=3 or  optype1=4 or optype1=5) AND active1=1.
+compute p.1=1.
+end if.
+execute.
+
+do if
+(optype2=3 or  optype2=4 or optype2=5) AND active2=1.
+compute p.2=1.
+end if.
+Execute.
+
+do if
+(optype3=3 or  optype3=4 or optype3=5) AND active3=1.
+compute p.3=1.
+end if.
+execute.
+
+compute deg.pers = sum(p.1,p.2,p.3).
+execute.
+
+compute deg.ot.3=0.
+execute.
+do if
+once1=1.
+compute deg.ot.3=deg.ot.3+1.
+else if
+once1=1.
+compute deg.ot.3=deg.ot.3+1.
+else if
+once3=1.
+compute deg.ot.3=deg.ot.3+1.
+end if.
+execute.
+
+compute deg.ot=0.
+execute.
+compute deg.ot = vsnpyr.main - (deg.cohab + deg.pers).
+execute.
+
+
+RECODE age (15 thru 18=1) (19 thru 24=2) (25 thru 34=3) (35 thru HI=4) INTO Agecat.
+VARIABLE LABELS  Agecat 'Age catagory'.
+EXECUTE.
+
+WEIGHT BY weight.
+
+CROSSTABS
+  /TABLES=Agecat BY RACE3
+  /FORMAT=AVALUE TABLES
+  /CELLS=COUNT
+  /COUNT ROUND CELL.
+
+
+MALES			
+Percentages by race/ethnicity and age, combined white and 'other'			
+	Black NH	Hispanic	White/other NH
+15-18	1.4192	1.0149	0.9448
+19-24	1.3767	0.9771	0.9169
+25-34	1.5807	0.9770	0.8832
+35-44	1.5930	1.0701	0.8735
+
+DO IF
+RACE3= 1 AND AGECAT = 1.
+compute weight2 = weight*1.4192.
+else if
+RACE3=1 AND AGECAT = 2.
+compute weight2 = weight*1.3767.
+else if
+RACE3=1 AND AGECAT = 3.
+compute weight2 = weight*1.5807.
+else if
+RACE3=1 AND AGECAT = 4.
+compute weight2 = weight*1.5930.
+else if
+RACE3=2 AND AGECAT = 1.
+compute weight2 = weight*1.0149.
+else if
+RACE3=2 AND AGECAT = 2.
+compute weight2 = weight*.9771.
+else if
+RACE3=2 AND AGECAT = 3.
+compute weight2 = weight*.9770.
+else if
+RACE3=2 AND AGECAT = 4.
+compute weight2 = weight*1.0701.
+else if
+RACE3=3 AND AGECAT = 1.
+compute weight2 = weight*.9448.
+else if
+RACE3=3 AND AGECAT = 2.
+compute weight2 = weight*.9169.
+else if
+RACE3=3 AND AGECAT = 3.
+compute weight2 = weight*.8832.
+else if
+RACE3=3 AND AGECAT = 4.
+compute weight2 = weight*.8735.
+end if.
+execute.
+
+
+WEIGHT BY weight2.
+
+CROSSTABS
+  /TABLES=Agecat BY RACE3
+  /FORMAT=AVALUE TABLES
+  /CELLS=COUNT
+  /COUNT ROUND CELL.
+
+
+compute sex=1.
+
+SAVE OUTFILE= 'H:\CAMP 2.0\NSFG Analysis\NSFG\2013-2017\NSFGsexnet2011_17m_reduced.sav'
+  /KEEP CASEID cohort weight CMINTVW age vsex.main vsnplife vsnplife3 vsnpyr.main
+RACE HADSEX agefsex PARTS1YR CURRPRTS FSTSEXAGE RFSXAGEGP VAGSEX
+VAGNUM12 CONDVAG ANALSEX CONDANAL ATTRACT ANALNUM12 STDTST12 PXCONFRQ
+PXCONFRQ2 PXCONFRQ3 SEXFREQ CONFREQ CONDFREQ CMHIVTST EVHIVTST optype1
+optype2 optype3 page1 page2 page3 prace1 prace2 prace3 active1 active2 active3 dfs1 dfs2
+dfs3 dls1 dls2 dls3 len1 len2 len3 once1
+once2 once3 ndlsyr lastpage condfs1 condfs2 condfs3 sex4wk
+cond4wk condcwp RACE3 c.1 c.2 c.3 deg.cohab p.1
+p.2 p.3 deg.pers deg.ot.3 deg.ot Agecat weight2 sex.
