@@ -6,3 +6,7 @@ Hamilton, D.T., Hoover, K.W., Smith, D.K. et al. Achieving the “Ending the HIV
 and “Potential contribution of PrEP uptake by adolescents 15-17 years old to achieving the EHE incidence reduction goals in the US South” [Cite PAPER2]. 
 
 Before proceeding it is highly recommended that researchers thoroughly read both papers and their associated technical appendix. 
+
+# Installation
+remotes::install_github("dth2/Achieving-the-EHE-incidence-reduction-goals-in-the-US-South",ref="SouthComb")
+
