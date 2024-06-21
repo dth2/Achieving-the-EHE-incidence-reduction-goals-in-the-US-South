@@ -30,4 +30,4 @@ remotes::install_github("dth2/Achieving-the-EHE-incidence-reduction-goals-in-the
 The versions for all other R packages used for this analysis can be found in the renv.lock file
 
 # Data requirements
-
+The primary data sources for this analysis are ARTnet and the NSFG. The ARTnet data can be downloaded from the ARTnet repository after completing a data use agreement https://github.com/EpiModel/ArtNet. The NSFG is publicly available from the Centers for Disease Control and Prevention website https://www.cdc.gov/nchs/nsfg/nsfg_questionnaires.htm. The National Center for Health Statistics provides detailed guides for working with these data and options to download the data using SPSS, SAS, or STATA. For this study we opted to use the SPSS versions so the scripts for cleaning variable construction are written in SPSS code.     
