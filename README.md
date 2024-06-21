@@ -17,3 +17,5 @@ remotes::install_github("dth2/Achieving-the-EHE-incidence-reduction-goals-in-the
 The versions for all other R packages used for this analysis can be found in the renv.lock file
 
 
+# Achieving EHE goals in the South: Routine opt-out HIV screening can facilitate entry to the HIV treatment and prevention continuums of care
+This repository contains the EpiModelHIV version used for the analysis reported in "Achieving EHE goals in the South: Routine opt-out HIV screening can facilitate entry to the HIV treatment and prevention continuums of care" The R package can be downloaded from the SouthComb branch of this repository.
